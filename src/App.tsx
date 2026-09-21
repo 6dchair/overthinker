@@ -551,15 +551,15 @@ function App() {
       return;
     }
 
-    const startedAt = new Date().toISOString();
+    const addedAt = new Date().toISOString();
 
     const newBlock: MediaBlock = {
       id: crypto.randomUUID(),
       type: pendingMedia.type,
       name: mediaName.trim() || "Untitled media",
       mediaBlob: pendingMedia.blob,
-      startedAt,
-      endedAt: startedAt,
+      startedAt: addedAt,
+      endedAt: addedAt,
     };
 
     const currentEntry = entries.find(
@@ -572,7 +572,7 @@ function App() {
 
     const updatedEntry: JournalEntry = {
       ...currentEntry,
-      updatedAt: startedAt,
+      updatedAt: addedAt,
       blocks: [...currentEntry.blocks, newBlock],
     };
 

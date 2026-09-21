@@ -38,10 +38,6 @@ function MediaBlockView({ block }: Props) {
         <audio controls src={url} />
 
         <p className="block-end-time">{formatDateTime(block.endedAt)}</p>
-
-        <p className="media-duration">
-          Duration: {formatDuration(block.duration)}
-        </p>
       </article>
     );
   }
@@ -104,17 +100,17 @@ function formatDateTime(dateString: string) {
   return `${month}${day}${year}.${hours}${minutes}`;
 }
 
-// -------------------------
-// DURATION
-// -------------------------
+// // -------------------------
+// // DURATION
+// // -------------------------
 
-function formatDuration(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+// function formatDuration(seconds: number) {
+//   const minutes = Math.floor(seconds / 60);
+//   const remainingSeconds = seconds % 60;
 
-  return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
-    .toString()
-    .padStart(2, "0")}`;
-}
+//   return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+//     .toString()
+//     .padStart(2, "0")}`;
+// }
 
 export default MediaBlockView;

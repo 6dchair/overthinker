@@ -21,7 +21,8 @@ export interface MediaBlock {
   type: "image" | "video" | "gif";
   name: string;
   mediaBlob: Blob;
-  addedAt: string;
+  startedAt: string;
+  endedAt: string;
 }
 
 export type JournalBlock =
