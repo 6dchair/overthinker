@@ -994,10 +994,10 @@ function App() {
 
             <div className="empty-state">
 
-              <p>No entries yet.</p>
+              <p>woa, emptyy y  y</p>
 
               <p>
-                Start writing whenever you're ready.
+                anyway, start writing whenever u're ready :)
               </p>
 
             </div>
