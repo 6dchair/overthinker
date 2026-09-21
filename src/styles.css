@@ -1,0 +1,744 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  color: #1f1f1f;
+  background: #f5f3ef;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* =========================================================
+   APP
+========================================================= */
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+  text-align: left;
+}
+
+.app-content {
+  width: 100%;
+  min-height: 100vh;
+
+  padding: 24px 40px;
+
+  text-align: left;
+}
+
+/* =========================================================
+   HOME
+========================================================= */
+
+.home-header {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.home-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.tagline {
+  margin: 4px 0 0;
+
+  color: #777;
+
+  font-size: 15px;
+}
+
+/* =========================================================
+   NEW ENTRY BUTTON
+========================================================= */
+/* =========================================================
+   EYE NEW-ENTRY BUTTON
+========================================================= */
+
+.eye-button-wrapper {
+  position: relative;
+
+  width: 36px;
+  height: 30px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  transform: translateY(-13px);
+}
+
+/* =========================================================
+   EYE
+========================================================= */
+
+.eye-button-wrapper .write-button {
+  position: relative;
+
+  width: 36px;
+  height: 20px;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+ 
+  background: transparent !important;
+
+  color: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+/* .eye-button-wrapper .write-button::before {
+  content: "";
+
+  position: absolute;
+  inset: 2px 0;
+
+  border-top: 2px solid #1f1f1f;
+  border-bottom: 2px solid #1f1f1f;
+
+  transform: rotate(0deg);
+
+  clip-path: polygon(
+    0% 50%,
+    12% 25%,
+    28% 8%,
+    50% 0%,
+    72% 8%,
+    88% 25%,
+    100% 50%,
+    88% 75%,
+    72% 92%,
+    50% 100%,
+    28% 92%,
+    12% 75%
+  );
+} */
+.eye-button-wrapper .write-button::before {
+  content: "";
+
+  position: absolute;
+
+  width: 34px;
+  height: 17px;
+
+  left: 1px;
+  top: 1px;
+
+  border-top: 2px solid #1f1f1f;
+  border-bottom: 2px solid #1f1f1f;
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  pointer-events: none;
+}
+/* =========================================================
+   RED +
+========================================================= */
+
+/* .eye-pupil {
+  display: block;
+
+  color: #c62828;
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+
+  transform: translateY(1px);
+} */
+.eye-pupil {
+  position: relative;
+  z-index: 5;
+
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+  background: transparent !important;
+
+  color: #c62828;
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(1.6px);
+}
+
+
+/* =========================================================
+   FIVE UPPER EYELASHES
+========================================================= */
+.eyelashes {
+  position: absolute;
+
+  top: 5px;
+  left: 50%;
+
+  width: 30px;
+  height: 8px;
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
+
+  z-index: 6;
+}
+
+.eyelashes span {
+  position: absolute;
+
+  bottom: 0;
+
+  width: 1.5px;
+  height: 5px;
+
+  background: #1f1f1f;
+
+  border-radius: 2px;
+
+  transform-origin: bottom center;
+}
+
+/* Leftmost */
+.eyelashes span:nth-child(1) {
+  left: 3px;
+  /* transform: rotate(-50deg); */
+  bottom: -1px;
+  height: 4px;
+  transform: rotate(-48deg);
+}
+
+/* Left */
+.eyelashes span:nth-child(2) {
+  left: 9px;
+  height: 5px;
+  transform: rotate(-30deg);
+}
+
+/* Center */
+.eyelashes span:nth-child(3) {
+  left: 14px;
+  height: 6px;
+  transform: rotate(0deg);
+}
+
+/* Right */
+.eyelashes span:nth-child(4) {
+  left: 20px;
+  height: 5px;
+  transform: rotate(30deg);
+}
+
+/* Rightmost */
+.eyelashes span:nth-child(5) {
+  /* left: 29px;
+  transform: rotate(50deg); */
+  left: 26px;
+  bottom: -1px;
+
+  height: 4px;
+
+  transform: rotate(48deg);
+}
+
+/* =========================================================
+   SECTION LABEL
+========================================================= */
+
+.section-label {
+  margin: 0 0 4px;
+
+  color: #888;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+/* =========================================================
+   ENTRY LIST
+========================================================= */
+
+.entry-list {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+}
+
+.entry-item {
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+
+  width: 100%;
+
+  padding: 10px 0;
+
+  border-top: 1px solid #dedbd5;
+
+  cursor: pointer;
+
+  transition: opacity 0.15s ease;
+}
+
+.entry-item:last-child {
+  border-bottom: 1px solid #dedbd5;
+}
+
+.entry-item:hover {
+  opacity: 0.65;
+}
+
+.entry-number {
+  flex: 0 0 35px;
+
+  padding-top: 1px;
+
+  color: #aaa;
+
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-info {
+  min-width: 0;
+}
+
+.entry-title {
+  margin: 0 0 2px;
+
+  color: #1f1f1f;
+
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.entry-meta,
+.entry-count {
+  margin: 1px 0;
+
+  color: #777;
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.entry-count {
+  color: #999;
+  font-size: 10px;
+}
+
+.empty-state {
+  color: #888;
+}
+
+/* =========================================================
+   ENTRY CONTEXT MENU
+========================================================= */
+
+.entry-context-menu {
+  position: absolute;
+
+  top: 50%;
+  right: 0;
+
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 145px;
+
+  padding: 5px;
+
+  border: 1px solid #dedbd5;
+  border-radius: 8px;
+
+  background: #faf9f6;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+  transform: translateY(-50%);
+}
+
+.entry-context-menu button {
+  width: 100%;
+
+  padding: 8px 10px;
+
+  border: none;
+  border-radius: 5px;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.entry-context-menu button:hover {
+  background: #ebe8e2;
+}
+
+.entry-context-menu .delete-option {
+  color: #a33;
+}
+
+/* =========================================================
+   ENTRY PAGE
+========================================================= */
+
+.entry-view {
+  width: 100%;
+  max-width: none;
+}
+
+.back-button {
+  margin: 0 0 10px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #777;
+
+  font-size: 14px;
+}
+
+.back-button:hover {
+  color: #1f1f1f;
+}
+
+.entry-header {
+  width: 100%;
+}
+
+.entry-header h1 {
+  margin: 0 0 4px;
+
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.entry-created {
+  margin: 0;
+
+  color: #777;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   ENTRY PAGE ACTIONS
+========================================================= */
+
+.entry-actions-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  gap: 5px;
+
+  margin: 0 0 16px;
+}
+
+.entry-actions-top button {
+  padding: 5px 8px;
+
+  border: 1px solid #d6d2ca;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #333;
+
+  font-size: 13px;
+}
+
+.entry-actions-top button:hover {
+  background: #ebe8e2;
+}
+
+/* =========================================================
+   ENTRY BLOCKS
+========================================================= */
+
+.entry-blocks {
+  width: 100%;
+  max-width: none;
+}
+
+.entry-blocks > * + * {
+  border-top: 1px solid #dedbd5;
+  padding-top: 13px;
+  margin-top: 13px;
+}
+
+/* .journal-block {
+  padding: 2px 0;
+} */
+
+.block-time {
+  margin: 0 0 5px;
+
+  color: #777;
+
+  font-size: 10px;
+}
+
+.text-content {
+  margin: 0;
+
+  white-space: pre-wrap;
+
+  line-height: 1;
+  font-size: 13px;
+}
+
+.block-end-time {
+  margin: 6px 0 0;
+
+  color: #888;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   COMPOSER
+========================================================= */
+
+.composer-section {
+  width: 100%;
+  max-width: 850px;
+
+  margin-top: 16px;
+  padding: 14px 0;
+
+  border-top: 1px solid #dedbd5;
+
+  text-align: left;
+}
+
+.composer-section h2 {
+  margin: 0 0 6px;
+
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.composer-section textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 200px;
+
+  margin: 6px 0;
+
+  padding: 7px;
+
+  border: 1px solid #ccc8c0;
+  border-radius: 7px;
+
+  background: #faf9f6;
+
+  resize: vertical;
+}
+
+.composer-section label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 3px;
+
+  margin: 6px 0;
+
+  font-size: 12px;
+}
+
+.composer-section input {
+  width: min(500px, 100%);
+
+  padding: 9px 11px;
+
+  border: 1px solid #ccc8c0;
+  border-radius: 7px;
+
+  background: #faf9f6;
+}
+
+.composer-section button {
+  padding: 8px 12px;
+}
+
+.recording-time {
+  margin: 8px 0;
+
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.media-preview {
+  display: block;
+
+  max-width: 600px;
+  max-height: 500px;
+
+  margin: 6px 0;
+
+  object-fit: contain;
+}
+
+/* =========================================================
+   GENERAL BUTTON ROW
+========================================================= */
+
+.button-row {
+  display: flex;
+  justify-content: flex-start;
+
+  gap: 5px;
+
+  margin: 5px 0;
+}
+
+.rename-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 8px;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .app-content {
+    padding: 16px 9px;
+  }
+
+  .home-header {
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    font-size: 24px;
+  }
+
+  .logo-row {
+    gap: 11px;
+  }
+
+  .entry-item {
+    padding: 10px 0;
+  }
+
+  .entry-number {
+    flex: 0 0 24px;
+  }
+
+  .entry-title {
+    font-size: 13px;
+  }
+
+  .entry-header h1 {
+    font-size: 24px;
+  }
+
+  .entry-actions-top {
+    gap: 7px;
+    margin-bottom: 13px;
+  }
+
+  .entry-actions-top button {
+    font-size: 13px;
+  }
+
+  .entry-context-menu {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+    right: auto;
+
+    transform: translate(-50%, -50%);
+  }
+
+  .media-preview {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+
+.entry-separator {
+  width: 100%;
+  margin: 0 0 16px;
+
+  border: 0;
+  border-top: 0.2px solid rgba(31, 31, 31, 0.3);
+}
