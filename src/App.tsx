@@ -1,3 +1,7 @@
+// import { useState } from "react";
+import SplashScreen from "./components/SplashScreen";
+
+
 import { useEffect, useRef, useState } from "react";
 import type {
   JournalEntry,
@@ -12,6 +16,9 @@ function App() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+
+  const [showSplash, setShowSplash] = useState(true);
 
   // -------------------------
   // LONG PRESS MENU
@@ -53,12 +60,11 @@ function App() {
     duration: number;
   } | null>(null);
 
-  const [audioName, setAudioName] = useState("Untitled recording");
+  const [audioName, setAudioName] = useState("no titlɘ ¿");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<number | null>(null);
-
   // -------------------------
   // MEDIA ATTACHMENTS
   // -------------------------
@@ -74,6 +80,34 @@ function App() {
 
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
 
+
+
+  // -------------------------
+  // CLOSE MENUS WHEN CLICKING OUTSIDE
+  // -------------------------
+
+  useEffect(() => {
+    const handleOutsideClick = (event: PointerEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        target.closest(".entry-context-menu") ||
+        target.closest(".dots-button")
+      ) {
+        return;
+      }
+
+      setContextEntryId(null);
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, []);
+
+
   // -------------------------
   // LOAD DATABASE
   // -------------------------
@@ -84,8 +118,8 @@ function App() {
         const storedEntries = await getEntries();
         setEntries(storedEntries);
       } catch (error) {
-        console.error("Could not load journal entries:", error);
-        alert("Could not load your journal entries.");
+        console.error("could not load journal entries:", error);
+        alert("could not load your journal entries.");
       } finally {
         setLoading(false);
       }
@@ -141,7 +175,7 @@ function App() {
 
     const newEntry: JournalEntry = {
       id: crypto.randomUUID(),
-      title: "Untitled Entry",
+      title: "untitlɘd ɘntry",
       createdAt: now,
       updatedAt: now,
       blocks: [],
@@ -153,8 +187,8 @@ function App() {
       setEntries((current) => [newEntry, ...current]);
       setSelectedEntryId(newEntry.id);
     } catch (error) {
-      console.error("Could not create entry:", error);
-      alert("Could not save the new entry.");
+      console.error("could not create entry:", error);
+      alert("could not save the new entry.");
     }
   };
 
@@ -252,8 +286,8 @@ function App() {
       setIsRenamingEntry(false);
       setEntryName("");
     } catch (error) {
-      console.error("Could not rename entry:", error);
-      alert("Could not rename the entry.");
+      console.error("could not rename entry:", error);
+      alert("could not rename the entry.");
     }
   };
 
@@ -271,7 +305,7 @@ function App() {
     }
 
     const confirmed = window.confirm(
-      `Delete "${entry.title}"?\n\nThis will permanently delete the entry and all of its writing, recordings, images, GIFs, and videos from this device.`
+      `dɘlɘtɘ"${entry.title}"?\n\nthis will permanently delete the entry & all of its writing, recordings, images, GIFs, & videos from this device`
     );
 
     if (!confirmed) {
@@ -291,8 +325,8 @@ function App() {
         setSelectedEntryId(null);
       }
     } catch (error) {
-      console.error("Could not delete entry:", error);
-      alert("Could not delete the entry.");
+      console.error("could not delete entry:", error);
+      alert("could not delete the entry.");
     }
   };
 
@@ -609,6 +643,104 @@ function App() {
   };
 
   // -------------------------
+  // BLOCK RENAME / DELETE
+  // -------------------------
+
+  const renameBlockInEntry = async (blockId: string) => {
+    if (!selectedEntry) {
+      return;
+    }
+
+    const block = selectedEntry.blocks.find((b) => b.id === blockId);
+
+    if (!block || block.type === "text") {
+      return;
+    }
+
+    const newName = window.prompt("rename to:", block.name);
+
+    if (newName === null) {
+      return;
+    }
+
+    const trimmed = newName.trim();
+
+    if (!trimmed) {
+      alert("Please enter a name.");
+      return;
+    }
+
+    const updatedAt = new Date().toISOString();
+
+    const updatedEntry: JournalEntry = {
+      ...selectedEntry,
+      updatedAt,
+      blocks: selectedEntry.blocks.map((b) =>
+        b.id === blockId ? { ...b, name: trimmed } : b
+      ),
+    };
+
+    try {
+      await saveEntry(updatedEntry);
+
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.id === selectedEntry.id ? updatedEntry : entry
+        )
+      );
+    } catch (error) {
+      console.error("could not rename item:", error);
+      alert("could not rename this item.");
+    }
+  };
+
+  const deleteBlockFromEntry = async (blockId: string) => {
+    if (!selectedEntry) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "delete this item? this cannot be undone."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const updatedAt = new Date().toISOString();
+
+    const updatedEntry: JournalEntry = {
+      ...selectedEntry,
+      updatedAt,
+      blocks: selectedEntry.blocks.filter((b) => b.id !== blockId),
+    };
+
+    try {
+      await saveEntry(updatedEntry);
+
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.id === selectedEntry.id ? updatedEntry : entry
+        )
+      );
+    } catch (error) {
+      console.error("could not delete item:", error);
+      alert("could not delete this item.");
+    }
+  };
+
+
+
+  if (showSplash) {
+    return (
+      <SplashScreen
+        onFinished={() => setShowSplash(false)}
+      />
+    );
+  }
+
+
+  // -------------------------
   // SELECTED ENTRY
   // -------------------------
 
@@ -663,20 +795,80 @@ function App() {
 
                 <div className="button-row">
                   <button onClick={saveEntryName}>
-                    ✓ Save
+                    savɘ
                   </button>
 
                   <button onClick={cancelRenamingEntry}>
-                    Cancel
+                    nvm
                   </button>
                 </div>
               </section>
             ) : (
               <>
-                <h1>{selectedEntry.title}</h1>
+                {/* <h1>{selectedEntry.title}</h1> */}
+               <div className="entry-title-row">
+                  <h1>{selectedEntry.title}</h1>
+
+                  <div
+                    className="menu-anchor"
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <button
+                      className="dots-button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        setContextEntryId(
+                          contextEntryId === selectedEntry.id
+                            ? null
+                            : selectedEntry.id
+                        );
+                      }}
+                      aria-label="Entry options"
+                    >
+                      ⋮
+                    </button>
+
+                    {contextEntryId === selectedEntry.id ? (
+                      <div
+                        className="dropdown-menu"
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => {
+                            setContextEntryId(null);
+                            renameEntryFromMenu(selectedEntry.id);
+                          }}
+                        >
+                          rɘnamɘ
+                        </button>
+
+                        <button
+                          className="delete-option"
+                          onClick={() => {
+                            setContextEntryId(null);
+                            deleteEntryFromMenu(selectedEntry.id);
+                          }}
+                        >
+                          dɘlɘtɘ
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setContextEntryId(null);
+                          }}
+                        >
+                          nvm
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
 
                 <p className="entry-created">
-                  Created: {formatDateTime(selectedEntry.createdAt)}
+                  created: {formatDateTime(selectedEntry.createdAt)}
                 </p>
               </>
             )}
@@ -691,7 +883,7 @@ function App() {
                   aria-label="Continue writing"
                   title="Continue writing"
                 >
-                  ✏️
+                  🖉
                 </button>
 
                 <button onClick={startRecording}>
@@ -745,6 +937,8 @@ function App() {
                   <MediaBlockView
                     key={block.id}
                     block={block}
+                    onRename={renameBlockInEntry}
+                    onDelete={deleteBlockFromEntry}
                   />
                 );
               }
@@ -841,11 +1035,11 @@ function App() {
               <div className="button-row">
 
                 <button onClick={discardPendingAudio}>
-                  Delete
+                  dɘlɘtɘ
                 </button>
 
                 <button onClick={savePendingAudio}>
-                  Save recording
+                  savɘ
                 </button>
 
               </div>
@@ -894,7 +1088,7 @@ function App() {
               <div className="button-row">
 
                 <button onClick={discardPendingMedia}>
-                  Delete
+                  dɘlɘtɘ
                 </button>
 
                 <button onClick={savePendingMedia}>
@@ -994,11 +1188,7 @@ function App() {
 
             <div className="empty-state">
 
-              <p>woa, emptyy y  y</p>
-
-              <p>
-                anyway, start writing whenever u're ready :)
-              </p>
+              <p>woa, emptyy y ...  anyway, start writing whenever u're ready :)</p>
 
             </div>
 
@@ -1046,61 +1236,45 @@ function App() {
 
                   <div className="entry-info">
 
-                    <h3 className="entry-title">
+                    {/* <h3 className="entry-title">
                       {entry.title}
-                    </h3>
-
-                    <p className="entry-meta">
-                      {formatDateTime(entry.createdAt)}
-                    </p>
-
-                    <p className="entry-count">
-                      {entry.blocks.length}{" "}
-                      {entry.blocks.length === 1
-                        ? "addition"
-                        : "additions"}
-                    </p>
-
-                  </div>
-
-                  {/* LONG PRESS MENU */}
-
-                  {contextEntryId === entry.id ? (
-
-                    <div
-                      className="entry-context-menu"
-
-                      onClick={(event) =>
-                        event.stopPropagation()
-                      }
-                    >
+                    </h3> */}
+                    <div className="entry-title-row">
+                      <h3 className="entry-title">
+                        {entry.title}
+                      </h3>
 
                       <button
-                        onClick={() =>
-                          renameEntryFromMenu(entry.id)
-                        }
+                        className="dots-button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEntryMenu(entry.id);
+                        }}
+                        aria-label="Entry options"
                       >
-                        ✏️ Rename
+                        ⋮
                       </button>
-
-                      <button
-                        className="delete-option"
-                        onClick={() =>
-                          deleteEntryFromMenu(entry.id)
-                        }
-                      >
-                        🗑 Delete
-                      </button>
-
-                      <button
-                        onClick={closeEntryMenu}
-                      >
-                        Cancel
-                      </button>
-
                     </div>
 
-                  ) : null}
+                    <div className="entry-meta-row">
+                      <span className="entry-meta">
+                        {formatDateTime(entry.createdAt)}
+                      </span>
+
+                      <span className="entry-divider"> ٭ </span>
+
+                      <span className="entry-count">
+          
+                        {entry.blocks.length}{" "}
+                        {entry.blocks.length === 1
+                          ? "addition"
+                          : "additions"}
+                      </span>
+
+            
+                    </div>
+
+                  </div>
 
                 </article>
 

@@ -3,7 +3,8 @@
     sans-serif;
 
   color: #1f1f1f;
-  background: #f5f3ef;
+  /* background: #f5f3ef; */
+  background: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,6 +21,7 @@ body,
   width: 100%;
   min-width: 100%;
   min-height: 100%;
+  background: #ffffff;
 }
 
 body {
@@ -44,6 +46,7 @@ button {
   width: 100%;
   min-height: 100vh;
   text-align: left;
+  background: #ffffff;
 }
 
 .app-content {
@@ -94,9 +97,6 @@ button {
 }
 
 /* =========================================================
-   NEW ENTRY BUTTON
-========================================================= */
-/* =========================================================
    EYE NEW-ENTRY BUTTON
 ========================================================= */
 
@@ -113,10 +113,6 @@ button {
   transform: translateY(-13px);
 }
 
-/* =========================================================
-   EYE
-========================================================= */
-
 .eye-button-wrapper .write-button {
   position: relative;
 
@@ -127,7 +123,7 @@ button {
 
   border: none;
   border-radius: 0;
- 
+
   background: transparent !important;
 
   color: transparent;
@@ -139,32 +135,6 @@ button {
   cursor: pointer;
 }
 
-/* .eye-button-wrapper .write-button::before {
-  content: "";
-
-  position: absolute;
-  inset: 2px 0;
-
-  border-top: 2px solid #1f1f1f;
-  border-bottom: 2px solid #1f1f1f;
-
-  transform: rotate(0deg);
-
-  clip-path: polygon(
-    0% 50%,
-    12% 25%,
-    28% 8%,
-    50% 0%,
-    72% 8%,
-    88% 25%,
-    100% 50%,
-    88% 75%,
-    72% 92%,
-    50% 100%,
-    28% 92%,
-    12% 75%
-  );
-} */
 .eye-button-wrapper .write-button::before {
   content: "";
 
@@ -185,21 +155,7 @@ button {
 
   pointer-events: none;
 }
-/* =========================================================
-   RED +
-========================================================= */
 
-/* .eye-pupil {
-  display: block;
-
-  color: #c62828;
-
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-
-  transform: translateY(1px);
-} */
 .eye-pupil {
   position: relative;
   z-index: 5;
@@ -219,10 +175,6 @@ button {
   transform: translateY(1.6px);
 }
 
-
-/* =========================================================
-   FIVE UPPER EYELASHES
-========================================================= */
 .eyelashes {
   position: absolute;
 
@@ -254,40 +206,32 @@ button {
   transform-origin: bottom center;
 }
 
-/* Leftmost */
 .eyelashes span:nth-child(1) {
   left: 3px;
-  /* transform: rotate(-50deg); */
   bottom: -1px;
   height: 4px;
   transform: rotate(-48deg);
 }
 
-/* Left */
 .eyelashes span:nth-child(2) {
   left: 9px;
   height: 5px;
   transform: rotate(-30deg);
 }
 
-/* Center */
 .eyelashes span:nth-child(3) {
   left: 14px;
   height: 6px;
   transform: rotate(0deg);
 }
 
-/* Right */
 .eyelashes span:nth-child(4) {
   left: 20px;
   height: 5px;
   transform: rotate(30deg);
 }
 
-/* Rightmost */
 .eyelashes span:nth-child(5) {
-  /* left: 29px;
-  transform: rotate(50deg); */
   left: 26px;
   bottom: -1px;
 
@@ -343,7 +287,7 @@ button {
 }
 
 .entry-item:hover {
-  opacity: 0.65;
+  opacity: 1;
 }
 
 .entry-number {
@@ -359,6 +303,7 @@ button {
 
 .entry-info {
   min-width: 0;
+  width: 100%;
 }
 
 .entry-title {
@@ -388,58 +333,6 @@ button {
 
 .empty-state {
   color: #888;
-}
-
-/* =========================================================
-   ENTRY CONTEXT MENU
-========================================================= */
-
-.entry-context-menu {
-  position: absolute;
-
-  top: 50%;
-  right: 0;
-
-  z-index: 10;
-
-  display: flex;
-  flex-direction: column;
-
-  min-width: 145px;
-
-  padding: 5px;
-
-  border: 1px solid #dedbd5;
-  border-radius: 8px;
-
-  background: #faf9f6;
-
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-
-  transform: translateY(-50%);
-}
-
-.entry-context-menu button {
-  width: 100%;
-
-  padding: 8px 10px;
-
-  border: none;
-  border-radius: 5px;
-
-  background: transparent;
-
-  text-align: left;
-
-  cursor: pointer;
-}
-
-.entry-context-menu button:hover {
-  background: #ebe8e2;
-}
-
-.entry-context-menu .delete-option {
-  color: #a33;
 }
 
 /* =========================================================
@@ -535,10 +428,6 @@ button {
   padding-top: 13px;
   margin-top: 13px;
 }
-
-/* .journal-block {
-  padding: 2px 0;
-} */
 
 .block-time {
   margin: 0 0 5px;
@@ -673,6 +562,138 @@ button {
 }
 
 /* =========================================================
+   TITLE ROW + MEDIA HEADER (shared layout)
+========================================================= */
+
+.entry-title-row,
+.media-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 6px;
+}
+
+.entry-title-row {
+  width: 100%;
+}
+
+.media-block-header {
+  margin: 0 0 6px;
+}
+
+.entry-title {
+  transition: color 0.15s ease;
+}
+
+.entry-item:hover .entry-number,
+.entry-item:hover .entry-title,
+.entry-item:hover .entry-meta,
+.entry-item:hover .entry-count,
+.entry-item:hover .entry-divider,
+.entry-item:hover .dots-button {
+  color: red;
+}
+/* =========================================================
+   DOTS BUTTON
+========================================================= */
+
+.dots-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 28px;
+  height: 24px;
+
+  padding: 0 4px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: none;
+
+  color: #555;
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.dots-button:hover {
+  color: #1f1f1f;
+  background: #ebe8e2;
+}
+
+/* =========================================================
+   DOTS MENU (entry titles + media blocks)
+   The dropdown is anchored directly to its own dots button,
+   so it always opens right next to wherever the dots are.
+========================================================= */
+
+.menu-anchor {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  flex-shrink: 0;
+}
+
+.dropdown-menu {
+  position: absolute;
+
+  top: 100%;
+  right: 0;
+
+  z-index: 30;
+
+  margin-top: 4px;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 140px;
+
+  padding: 5px;
+
+  border: 1px solid #dedbd5;
+  border-radius: 8px;
+
+  background: #faf9f6;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.dropdown-menu button {
+  width: 100%;
+
+  padding: 8px 10px;
+
+  border: none;
+  border-radius: 5px;
+
+  background: transparent;
+
+  text-align: left;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.dropdown-menu button:hover {
+  background: #ebe8e2;
+}
+
+.dropdown-menu .delete-option {
+  color: #a33;
+}
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
@@ -718,22 +739,25 @@ button {
     font-size: 13px;
   }
 
-  .entry-context-menu {
-    position: fixed;
-
-    top: 50%;
-    left: 50%;
-    right: auto;
-
-    transform: translate(-50%, -50%);
-  }
-
   .media-preview {
     max-width: 100%;
     height: auto;
   }
-}
 
+  .dropdown-menu {
+    min-width: 130px;
+  }
+
+  @media (max-width: 700px) {
+  /* your existing mobile styles */
+
+  .splash-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+}
+}
 
 .entry-separator {
   width: 100%;
@@ -741,4 +765,65 @@ button {
 
   border: 0;
   border-top: 0.2px solid rgba(31, 31, 31, 0.3);
+}
+
+
+.entry-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-top: 1px;
+}
+
+.entry-meta,
+.entry-count {
+  margin: 0;
+
+  color: #777;
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.entry-count {
+  color: #999;
+}
+
+.entry-divider {
+  color: #8b8a8a;
+
+  font-size: 13px;
+  line-height: 0.5  ;
+}
+
+/* =========================================================
+   SPLASH SCREEN
+========================================================= */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  width: 100%;
+  height: 100vh;
+
+  padding: 24px;
+
+  background: #ffffff;
+
+  z-index: 9999;
+}
+
+.splash-frame {
+  display: block;
+
+  width: min(70vw, 320px);
+  height: auto;
+
+  object-fit: contain;
 }
