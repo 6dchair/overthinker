@@ -1,7 +1,9 @@
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-
+  /* font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif; */
+  /* font-family: "Courier New", Courier, monospace; */
+  /* font-family: "RetroMono", monospace; */
+  font-family: Arial, Helvetica, sans-serif;
   color: #1f1f1f;
   /* background: #f5f3ef; */
   background: #ffffff;
@@ -82,7 +84,7 @@ button {
 .logo {
   margin: 0;
 
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 700;
   letter-spacing: -1.5px;
   line-height: 1;
@@ -93,7 +95,7 @@ button {
 
   color: #777;
 
-  font-size: 15px;
+  font-size: 25px;
 }
 
 /* =========================================================
@@ -103,8 +105,8 @@ button {
 .eye-button-wrapper {
   position: relative;
 
-  width: 36px;
-  height: 30px;
+  width: 41px;
+  height: 35px;
 
   display: flex;
   align-items: flex-end;
@@ -116,8 +118,8 @@ button {
 .eye-button-wrapper .write-button {
   position: relative;
 
-  width: 36px;
-  height: 20px;
+  width: 41px;
+  height: 25px;
 
   padding: 0;
 
@@ -125,7 +127,6 @@ button {
   border-radius: 0;
 
   background: transparent !important;
-
   color: transparent;
 
   display: flex;
@@ -140,14 +141,14 @@ button {
 
   position: absolute;
 
-  width: 34px;
-  height: 17px;
+  width: 39px;
+  height: 22px;
 
   left: 1px;
   top: 1px;
 
-  border-top: 2px solid #1f1f1f;
-  border-bottom: 2px solid #1f1f1f;
+  border-top: 3px solid #1f1f1f;
+  border-bottom: 3px solid #1f1f1f;
 
   border-radius: 50%;
 
@@ -162,27 +163,50 @@ button {
 
   display: block;
 
+  width: 17px;
+  height: 17px;
+
   margin: 0;
   padding: 0;
 
   background: transparent !important;
 
-  color: #c62828;
+  color: transparent;
 
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  transform: translateY(1.6px);
+  transform: translateY(2px);
+}
+
+.eye-pupil::before,
+.eye-pupil::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 3px;
+  height: 17px;
+
+  background: #c62828;
+
+  border-radius: 2px;
+
+  transform: translate(-50%, -50%);
+}
+
+.eye-pupil::after {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .eyelashes {
   position: absolute;
 
-  top: 5px;
+  top: 3px;
   left: 50%;
 
-  width: 30px;
-  height: 8px;
+  width: 37px;
+  height: 12px;
 
   transform: translateX(-50%);
 
@@ -196,48 +220,53 @@ button {
 
   bottom: 0;
 
-  width: 1.5px;
-  height: 5px;
+  width: 2.5px;
+  height: 9px;
 
   background: #1f1f1f;
 
-  border-radius: 2px;
+  border-radius: 3px;
 
   transform-origin: bottom center;
 }
 
 .eyelashes span:nth-child(1) {
-  left: 3px;
-  bottom: -1px;
-  height: 4px;
-  transform: rotate(-48deg);
+  left: 4px;
+  bottom: 0;
+
+  height: 8px;
+
+  transform: rotate(-55deg);
 }
 
 .eyelashes span:nth-child(2) {
-  left: 9px;
-  height: 5px;
+  left: 11px;
+  height: 10px;
+
   transform: rotate(-30deg);
 }
 
 .eyelashes span:nth-child(3) {
-  left: 14px;
-  height: 6px;
+  left: 18px;
+  height: 11px;
+
   transform: rotate(0deg);
 }
 
 .eyelashes span:nth-child(4) {
-  left: 20px;
-  height: 5px;
+  left: 25px;
+  height: 10px;
+
   transform: rotate(30deg);
 }
 
 .eyelashes span:nth-child(5) {
-  left: 26px;
-  bottom: -1px;
+  left: 32px;
+  bottom: 0;
 
-  height: 4px;
+  height: 8px;
 
-  transform: rotate(48deg);
+  transform: rotate(55deg);
 }
 
 /* =========================================================
@@ -249,7 +278,7 @@ button {
 
   color: #888;
 
-  font-size: 11px;
+  font-size: 21px;
   font-weight: 700;
   letter-spacing: 1.4px;
 }
@@ -261,7 +290,6 @@ button {
 .entry-list {
   display: flex;
   flex-direction: column;
-
   width: 100%;
 }
 
@@ -290,14 +318,16 @@ button {
   opacity: 1;
 }
 
+
 .entry-number {
   flex: 0 0 35px;
 
-  padding-top: 1px;
+  padding-top: 16px;
 
   color: #aaa;
 
-  font-size: 12px;
+  font-size: 16px;
+  line-height: 1.3;
   font-variant-numeric: tabular-nums;
 }
 
@@ -311,24 +341,46 @@ button {
 
   color: #1f1f1f;
 
-  font-size: 15px;
+  font-size: 25px;
   font-weight: 500;
   line-height: 1.3;
 }
 
-.entry-meta,
-.entry-count {
-  margin: 1px 0;
+.entry-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.entry-meta {
+  margin: 0;
 
   color: #777;
 
-  font-size: 10px;
+  font-size: 16px;
   line-height: 1.35;
 }
 
+.entry-divider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #8b8a8a;
+
+  font-size: 24px;
+  line-height: 1;
+
+  transform: translateY(-3px);
+}
+
 .entry-count {
+  margin: 0;
+
   color: #999;
-  font-size: 10px;
+
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 .empty-state {
@@ -353,9 +405,9 @@ button {
 
   background: transparent;
 
-  color: #777;
+  color: #0c0c0c;
 
-  font-size: 14px;
+  font-size: 60px;
 }
 
 .back-button:hover {
@@ -369,7 +421,7 @@ button {
 .entry-header h1 {
   margin: 0 0 4px;
 
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 600;
   letter-spacing: -0.8px;
   line-height: 1.2;
@@ -380,14 +432,14 @@ button {
 
   color: #777;
 
-  font-size: 13px;
+  font-size: 23px;
 }
 
 /* =========================================================
    ENTRY PAGE ACTIONS
 ========================================================= */
 
-.entry-actions-top {
+/* .entry-actions-top {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -407,7 +459,36 @@ button {
 
   color: #333;
 
-  font-size: 13px;
+  font-size: 23px;
+}
+
+.entry-actions-top button:hover {
+  background: #ebe8e2;
+} */
+
+.entry-actions-top {
+  display: flex;
+  flex-wrap: wrap;
+
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 5px;
+
+  margin: 8px 0 0;
+}
+
+.entry-actions-top button {
+  padding: 5px 8px;
+
+  border: 1px solid #d6d2ca;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #333;
+
+  font-size: 23px;
 }
 
 .entry-actions-top button:hover {
@@ -434,7 +515,7 @@ button {
 
   color: #777;
 
-  font-size: 10px;
+  font-size: 20px;
 }
 
 .text-content {
@@ -443,7 +524,7 @@ button {
   white-space: pre-wrap;
 
   line-height: 1;
-  font-size: 13px;
+  font-size: 23px;
 }
 
 .block-end-time {
@@ -451,7 +532,7 @@ button {
 
   color: #888;
 
-  font-size: 10px;
+  font-size: 20px;
 }
 
 /* =========================================================
@@ -529,11 +610,21 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.media-preview {
+/* .media-preview {
   display: block;
 
   max-width: 600px;
   max-height: 500px;
+
+  margin: 6px 0;
+
+  object-fit: contain;
+} */
+ .media-preview {
+  display: block;
+
+  max-width: 600px;
+  max-height: min(500px, 55vh);
 
   margin: 6px 0;
 
@@ -698,6 +789,7 @@ button {
 ========================================================= */
 
 @media (max-width: 700px) {
+
   .app-content {
     padding: 16px 9px;
   }
@@ -705,6 +797,8 @@ button {
   .home-header {
     margin-bottom: 20px;
   }
+
+  /* HOME */
 
   .logo {
     font-size: 24px;
@@ -714,20 +808,51 @@ button {
     gap: 11px;
   }
 
+  .tagline {
+    font-size: 15px;
+  }
+
+  .section-label {
+    font-size: 11px;
+  }
+
+  /* ENTRY LIST */
+
   .entry-item {
     padding: 10px 0;
   }
 
   .entry-number {
     flex: 0 0 24px;
+    padding-top: 16px;
+    font-size: 12px;
   }
 
   .entry-title {
     font-size: 13px;
   }
 
+  .entry-meta {
+    font-size: 10px;
+  }
+
+  .entry-divider {
+    font-size: 13px;
+    transform: translateY(-1px);
+  }
+
+  .entry-count {
+    font-size: 10px;
+  }
+
+  /* ENTRY PAGE */
+
   .entry-header h1 {
     font-size: 24px;
+  }
+
+  .entry-created {
+    font-size: 13px;
   }
 
   .entry-actions-top {
@@ -739,17 +864,41 @@ button {
     font-size: 13px;
   }
 
-  .media-preview {
+  /* ENTRY BLOCKS */
+
+  .block-time {
+    font-size: 10px;
+  }
+
+  .text-content {
+    font-size: 13px;
+  }
+
+  .block-end-time {
+    font-size: 10px;
+  }
+
+  /* MEDIA */
+
+  /* .media-preview {
     max-width: 100%;
     height: auto;
+  } */
+  @media (max-width: 700px) {
+    .media-preview {
+      max-width: 100%;
+      max-height: 50vh;
+      height: auto;
+    }
   }
+
+  /* MENU */
 
   .dropdown-menu {
     min-width: 130px;
   }
 
-  @media (max-width: 700px) {
-  /* your existing mobile styles */
+  /* SPLASH */
 
   .splash-screen {
     align-items: center;
@@ -757,44 +906,27 @@ button {
     padding: 0;
   }
 }
+
+.entry-page-title-row h1 {
+  font-size: 24px;
 }
 
-.entry-separator {
-  width: 100%;
-  margin: 0 0 16px;
-
-  border: 0;
-  border-top: 0.2px solid rgba(31, 31, 31, 0.3);
+.back-button {
+  font-size: 24px;
 }
 
-
-.entry-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-
-  margin-top: 1px;
-}
-
-.entry-meta,
-.entry-count {
-  margin: 0;
-
-  color: #777;
-
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-.entry-count {
-  color: #999;
-}
-
-.entry-divider {
-  color: #8b8a8a;
-
+.entry-actions-top button,
+.entry-actions-bottom button {
   font-size: 13px;
-  line-height: 0.5  ;
+}
+
+.entry-actions-bottom {
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.rename-section input {
+  font-size: 13px;
 }
 
 /* =========================================================
@@ -826,4 +958,231 @@ button {
   height: auto;
 
   object-fit: contain;
+}
+
+
+.entry-separator {
+  width: 100%;
+  height: 5px;
+
+  margin: 16px 0;
+
+  border: 0;
+
+  border-top: 1px solid rgba(31, 31, 31, 0.35);
+  border-bottom: 1px solid rgba(31, 31, 31, 0.35);
+
+  background: transparent;
+}
+
+
+
+/* =========================================================
+   ENTRY HEADER LAYOUT
+========================================================= */
+
+/* .entry-header {
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  width: 100%;
+  text-align: center;
+} */
+/* .entry-sticky-header {
+  position: sticky;
+  top: 0;
+
+  z-index: 20;
+
+  width: 100%;
+
+  background: #ffffff;
+
+  padding-bottom: 1px;
+} */
+/* 
+.entry-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+
+  text-align: center;
+} */
+
+.back-button {
+  display: block;
+
+  margin: 0 0 8px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #0c0c0c;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.back-button:hover {
+  color: #1f1f1f;
+}
+.entry-page-title-row {
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+
+  gap: 6px;
+}
+
+.entry-page-title-row h1 {
+  margin: 0;
+}
+
+.entry-actions-bottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 5px;
+
+  margin: 20px 0 10px;
+  padding-top: 16px;
+
+  border-top: 1px solid #dedbd5;
+}
+
+.entry-actions-bottom button {
+  padding: 5px 8px;
+
+  border: 1px solid #d6d2ca;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #333;
+
+  font-size: 23px;
+}
+
+.entry-actions-bottom button:hover {
+  background: #ebe8e2;
+}
+
+
+/* =========================================================
+   ENTRY STICKY HEADER (base — applies to all screen sizes)
+========================================================= */
+
+.entry-sticky-header {
+  position: sticky;
+  top: 0;
+
+  z-index: 20;
+
+  width: 100%;
+
+  background: #ffffff;
+
+  padding-bottom: 1px;
+}
+
+.home-sticky-header {
+  position: sticky;
+  top: 0;
+
+  z-index: 20;
+
+  background: #ffffff;
+
+  padding-bottom: 8px;
+}
+
+/* =========================================================
+   MOBILE ENTRY HEADER
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .entry-sticky-header {
+    padding: 8px 0 1px;
+  }
+
+  /* No back button on mobile — phone's own back gesture is used instead */
+  .entry-sticky-header > .back-button {
+    display: none;
+  }
+
+  .entry-sticky-header .entry-header {
+    width: 100%;
+    text-align: left;
+  }
+
+  .entry-sticky-header .entry-page-title-row {
+    width: 100%;
+
+    justify-content: flex-start;
+    align-items: center;
+
+    gap: 6px;
+  }
+
+  .entry-sticky-header .entry-page-title-row h1 {
+    font-size: 24px;
+    margin: 0;
+  }
+
+  .entry-sticky-header .entry-created {
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .entry-sticky-header .entry-actions-top {
+    justify-content: flex-start;
+
+    gap: 7px;
+
+    margin: 8px 0 13px;
+  }
+
+  .entry-sticky-header .entry-actions-top button {
+    font-size: 13px;
+  }
+
+}
+
+.rename-section input {
+  width: min(500px, 100%);
+
+  padding: 7px 9px;
+
+  border: 1px solid #ccc8c0;
+  border-radius: 7px;
+
+  background: #faf9f6;
+
+  font-size: 23px;
+}
+
+
+
+.pending-actions-sticky {
+  position: sticky;
+  bottom: 0;
+
+  z-index: 15;
+
+  background: #faf9f6;
+
+  padding: 10px 0;
+
+  border-top: 1px solid #dedbd5;
 }

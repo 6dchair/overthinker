@@ -13,6 +13,13 @@ import { getEntries, saveEntry, deleteEntry } from "./storage/db";
 import MediaBlockView from "./components/MediaBlockView";
 
 function App() {
+  /////
+  const writingSectionRef = useRef<HTMLDivElement | null>(null);
+  const recordingSectionRef = useRef<HTMLDivElement | null>(null);
+  const pendingAudioSectionRef = useRef<HTMLDivElement | null>(null);
+  const pendingMediaSectionRef = useRef<HTMLDivElement | null>(null);
+  // For the entry page issue when adding media or recording, the display is on them
+
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,10 +83,53 @@ function App() {
   } | null>(null);
 
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
-  const [mediaName, setMediaName] = useState("Untitled media");
+  const [mediaName, setMediaName] = useState("untitled media");
 
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [entryTitleMenuOpen, setEntryTitleMenuOpen] = useState(false);
+  const entryTitleMenuRef = useRef<HTMLDivElement | null>(null);
+
+
+  // -------------------------
+  // SCROLL TO ACTIVE COMPOSER SECTION
+  // -------------------------
+
+  useEffect(() => {
+    if (sessionStartedAt && !isRecording) {
+      writingSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [sessionStartedAt, isRecording]);
+
+  useEffect(() => {
+    if (isRecording) {
+      recordingSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [isRecording]);
+
+  useEffect(() => {
+    if (pendingAudio) {
+      pendingAudioSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [pendingAudio]);
+
+  useEffect(() => {
+    if (pendingMedia && mediaPreviewUrl) {
+      pendingMediaSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [pendingMedia, mediaPreviewUrl]);
 
 
   // -------------------------
@@ -107,7 +157,75 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleOutsideClick = (event: PointerEvent) => {
+      if (
+        entryTitleMenuRef.current &&
+        !entryTitleMenuRef.current.contains(event.target as Node)
+      ) {
+        setEntryTitleMenuOpen(false);
+      }
+    };
 
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, []);
+
+  // -------------------------
+// PHONE / BROWSER BACK BUTTON
+// -------------------------
+
+// useEffect(() => {
+//   const handlePopState = () => {
+//     setSelectedEntryId(null);
+//     setWriting("");
+//     setSessionStartedAt(null);
+//     setIsRenamingEntry(false);
+//     setEntryName("");
+//     setContextEntryId(null);
+//   };
+
+//   window.addEventListener("popstate", handlePopState);
+
+//   return () => {
+//     window.removeEventListener("popstate", handlePopState);
+//   };
+// }, []);
+  // -------------------------
+  // PHONE / BROWSER BACK BUTTON
+  // -------------------------
+
+  useEffect(() => {
+    // Ensure there's always a base "home" history entry underneath
+    // any entry we push, so the phone's back button/gesture has
+    // something to land on instead of exiting the app.
+    if (!window.history.state || window.history.state.view !== "home") {
+      window.history.replaceState({ view: "home" }, "");
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (!event.state || event.state.view !== "entry") {
+        setSelectedEntryId(null);
+        setWriting("");
+        setSessionStartedAt(null);
+        setIsRenamingEntry(false);
+        setEntryName("");
+        setContextEntryId(null);
+        setEntryTitleMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
   // -------------------------
   // LOAD DATABASE
   // -------------------------
@@ -175,7 +293,7 @@ function App() {
 
     const newEntry: JournalEntry = {
       id: crypto.randomUUID(),
-      title: "untitlɘd ɘntry",
+      title: "untitled entry",
       createdAt: now,
       updatedAt: now,
       blocks: [],
@@ -192,17 +310,37 @@ function App() {
     }
   };
 
+  // const openEntry = (entryId: string) => {
+  //   setSelectedEntryId(entryId);
+  // };
+
+  // const closeEntry = () => {
+  //   setSelectedEntryId(null);
+  //   setWriting("");
+  //   setSessionStartedAt(null);
+  //   setIsRenamingEntry(false);
+  //   setEntryName("");
+  //   setContextEntryId(null);
+  //   setEntryTitleMenuOpen(false);
+  // };
+
   const openEntry = (entryId: string) => {
+    window.history.pushState({ entryId }, "");
     setSelectedEntryId(entryId);
   };
 
   const closeEntry = () => {
+    if (window.history.state?.entryId) {
+      window.history.back();
+    }
+
     setSelectedEntryId(null);
     setWriting("");
     setSessionStartedAt(null);
     setIsRenamingEntry(false);
     setEntryName("");
     setContextEntryId(null);
+    setEntryTitleMenuOpen(false);
   };
 
   // -------------------------
@@ -442,7 +580,7 @@ function App() {
           duration: recordingDuration,
         });
 
-        setAudioName("Untitled recording");
+        setAudioName("untitled recording");
 
         stream.getTracks().forEach((track) => track.stop());
 
@@ -772,134 +910,128 @@ function App() {
       <main className="app">
         <div className="app-content entry-view">
 
+          <div className="entry-sticky-header">
+
           {/* BACK */}
 
-          <button className="back-button" onClick={closeEntry}>
-            ← Back
+          <button className="back-button" onClick={closeEntry} aria-label="Back">
+            ˂
           </button>
 
           {/* ENTRY HEADER */}
 
-          <header className="entry-header">
+          
 
-            {isRenamingEntry ? (
-              <section className="rename-section">
-                <input
-                  type="text"
-                  value={entryName}
-                  onChange={(event) =>
-                    setEntryName(event.target.value)
-                  }
-                  autoFocus
-                />
+  <header className="entry-header">
 
-                <div className="button-row">
-                  <button onClick={saveEntryName}>
-                    savɘ
-                  </button>
+    {isRenamingEntry ? (
+      <section className="rename-section">
+  <input
+    type="text"
+    value={entryName}
+    onChange={(event) => setEntryName(event.target.value)}
+    autoFocus
+    aria-label="Entry name"
+  />
 
-                  <button onClick={cancelRenamingEntry}>
-                    nvm
-                  </button>
-                </div>
-              </section>
-            ) : (
-              <>
-                {/* <h1>{selectedEntry.title}</h1> */}
-               <div className="entry-title-row">
-                  <h1>{selectedEntry.title}</h1>
+  <div className="button-row">
+    <button onClick={saveEntryName}>
+      savɘ
+    </button>
 
-                  <div
-                    className="menu-anchor"
-                    onPointerDown={(event) => event.stopPropagation()}
-                  >
-                    <button
-                      className="dots-button"
-                      onClick={(event) => {
-                        event.stopPropagation();
+    <button onClick={cancelRenamingEntry}>
+      cancel
+    </button>
+  </div>
+</section>
+    ) : (
+      <>
+        <div className="entry-title-row">
+          <h1>{selectedEntry.title}</h1>
 
-                        setContextEntryId(
-                          contextEntryId === selectedEntry.id
-                            ? null
-                            : selectedEntry.id
-                        );
-                      }}
-                      aria-label="Entry options"
-                    >
-                      ⋮
-                    </button>
+          <div
+            className="menu-anchor"
+            ref={entryTitleMenuRef}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="dots-button"
+              onClick={() => setEntryTitleMenuOpen((open) => !open)}
+              aria-label="Entry options"
+            >
+              ⋮
+            </button>
 
-                    {contextEntryId === selectedEntry.id ? (
-                      <div
-                        className="dropdown-menu"
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => {
-                            setContextEntryId(null);
-                            renameEntryFromMenu(selectedEntry.id);
-                          }}
-                        >
-                          rɘnamɘ
-                        </button>
-
-                        <button
-                          className="delete-option"
-                          onClick={() => {
-                            setContextEntryId(null);
-                            deleteEntryFromMenu(selectedEntry.id);
-                          }}
-                        >
-                          dɘlɘtɘ
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setContextEntryId(null);
-                          }}
-                        >
-                          nvm
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-
-                <p className="entry-created">
-                  created: {formatDateTime(selectedEntry.createdAt)}
-                </p>
-              </>
-            )}
-
-            {/* ACTIONS DIRECTLY UNDER CREATED */}
-
-            {!isRenamingEntry ? (
-              <div className="entry-actions-top">
+            {entryTitleMenuOpen ? (
+              <div className="dropdown-menu">
+                <button
+                  onClick={() => {
+                    setEntryTitleMenuOpen(false);
+                    renameEntryFromMenu(selectedEntry.id);
+                  }}
+                >
+                  rɘnamɘ
+                </button>
 
                 <button
-                  onClick={startWriting}
-                  aria-label="Continue writing"
-                  title="Continue writing"
+                  className="delete-option"
+                  onClick={() => {
+                    setEntryTitleMenuOpen(false);
+                    deleteEntryFromMenu(selectedEntry.id);
+                  }}
                 >
-                  🖉
+                  dɘlɘtɘ
                 </button>
 
-                <button onClick={startRecording}>
-                  🎙
+                <button onClick={() => setEntryTitleMenuOpen(false)}>
+                  cancel
                 </button>
-
-                <button onClick={openMediaPicker}>
-                  📎
-                </button>
-
               </div>
             ) : null}
+          </div>
+        </div>
 
-          <hr className="entry-separator" />
+        <p className="entry-created">
+          created: {formatDateTime(selectedEntry.createdAt)}
+        </p>
+      </>
+    )}
 
-          </header>
+    {!isRenamingEntry ? (
+      <div className="entry-actions-top">
+
+        <button
+          onClick={startWriting}
+          aria-label="Continue writing"
+          title="Continue writing"
+        >
+          🖉
+        </button>
+
+        <button
+          onClick={startRecording}
+          aria-label="Record"
+          title="Record"
+        >
+          🎙
+        </button>
+
+        <button
+          onClick={openMediaPicker}
+          aria-label="Add media"
+          title="Add media"
+        >
+          📎
+        </button>
+
+      </div>
+    ) : null}
+
+  </header>
+
+  <hr className="entry-separator" />
+
+</div>
 
           {/* EXISTING BLOCKS */}
 
@@ -950,7 +1082,7 @@ function App() {
           {/* WRITING */}
 
           {sessionStartedAt && !isRecording ? (
-            <section className="composer-section">
+            <section className="composer-section" ref={writingSectionRef}>
 
               <p className="session-time">
                 Writing started:{" "}
@@ -977,7 +1109,7 @@ function App() {
           {/* RECORDING */}
 
           {isRecording ? (
-            <section className="composer-section">
+            <section className="composer-section" ref={recordingSectionRef}>
 
               <h2>r e c o r d 🎙 n g</h2>
 
@@ -1002,7 +1134,7 @@ function App() {
           {/* PENDING AUDIO */}
 
           {pendingAudio ? (
-            <section className="composer-section">
+            <section className="composer-section" ref={pendingAudioSectionRef}>
 
               <h2>Recording finished</h2>
 
@@ -1050,7 +1182,7 @@ function App() {
           {/* PENDING MEDIA */}
 
           {pendingMedia && mediaPreviewUrl ? (
-            <section className="composer-section">
+            <section className="composer-section" ref={pendingMediaSectionRef}>
 
               <h2>
                 {pendingMedia.type === "image" && "📷 Image"}
@@ -1120,81 +1252,70 @@ function App() {
   // -------------------------
 
   return (
-    <main className="app">
+      <main className="app">
 
-      <div className="app-content">
+        <div className="app-content">
 
-        {/* HEADER */}
+          <div className="home-sticky-header">
 
-        <header className="home-header">
+            {/* HEADER */}
 
-          <div className="home-brand">
+            <header className="home-header">
 
-            <div className="logo-row">
+              <div className="home-brand">
 
-              <h1 className="logo">
-                overthinker
-              </h1>
+                <div className="logo-row">
+                  <h1 className="logo">
+                    ovɘrthinkɘr
+                  </h1>
+                </div>
 
-              {/* <button
+                <p className="tagline">
+                  a place for everything on ur mind
+                </p>
+
+              </div>
+
+            </header>
+
+            {/* EYE / NEW ENTRY BUTTON */}
+
+            <div className="eye-button-wrapper">
+              <span className="eyelashes" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+
+              <button
                 className="write-button"
                 onClick={createEntry}
                 aria-label="Create new entry"
                 title="New entry"
               >
-                ＋
-              </button> */}
-
+                <span className="eye-pupil">＋</span>
+              </button>
             </div>
 
-            <p className="tagline">
-              a place for everything on ur mind
-            </p>
+            <hr className="entry-separator" />
 
           </div>
 
-        </header>
+          {/* ENTRIES */}
 
-        {/* ENTRIES */}
+          <section>
 
-        {/* <section>
+            {entries.length === 0 ? (
 
-          <h2 className="section-label">
-            YOUR ENTRIES
-          </h2> */}
-        <section>
-          <div className="eye-button-wrapper">
-            <span className="eyelashes" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
+              <div className="empty-state">
+                <p>woa, emptyy y ...  anyway, start writing whenever u're ready :)</p>
+              </div>
 
-            <button
-              className="write-button"
-              onClick={createEntry}
-              aria-label="Create new entry"
-              title="New entry"
-            >
-              <span className="eye-pupil">＋</span>
-            </button>
-          </div>
+            ) : (
 
-
-
-          {entries.length === 0 ? (
-
-            <div className="empty-state">
-
-              <p>woa, emptyy y ...  anyway, start writing whenever u're ready :)</p>
-
-            </div>
-
-          ) : (
-
-            <div className="entry-list">
+              <div className="entry-list">
 
               {entries.map((entry, index) => (
 
@@ -1244,7 +1365,7 @@ function App() {
                         {entry.title}
                       </h3>
 
-                      <button
+                      {/* <button
                         className="dots-button"
                         onClick={(event) => {
                           event.stopPropagation();
@@ -1253,7 +1374,7 @@ function App() {
                         aria-label="Entry options"
                       >
                         ⋮
-                      </button>
+                      </button> */}
                     </div>
 
                     <div className="entry-meta-row">
@@ -1282,14 +1403,14 @@ function App() {
 
             </div>
 
-          )}
+            )}
 
-        </section>
+          </section>
 
-      </div>
+        </div>
 
-    </main>
-  );
+      </main>
+    );
 }
 
 export default App;
