@@ -931,7 +931,7 @@ button {
   .dashboard-entry-menu .dots-button {
     font-size: 16px;
   }
-
+/* 
   .select-button {
     font-size: 13px;
     color: red;
@@ -943,7 +943,7 @@ button {
 
   .bulk-actions .bulk-delete-button {
     color: red;
-  }
+  } */
 
   /* ENTRY PAGE */
 
@@ -960,9 +960,9 @@ button {
     margin-bottom: 13px;
   }
 
-  .entry-actions-top button {
+  /* .entry-actions-top button {
     font-size: 13px;
-  }
+  } */
 
   /* ENTRY BLOCKS */
 
@@ -1594,3 +1594,23 @@ button {
 }
 
 
+@media (max-width: 700px) {
+
+  .select-button {
+    font-size: 13px;
+  }
+
+  .bulk-actions button {
+    font-size: 13px;
+  }
+
+  .bulk-actions .bulk-delete-button {
+    font-size: 13px;
+    color: red;
+  }
+
+  .entry-actions-top button {
+    font-size: 13px;
+  }
+
+}

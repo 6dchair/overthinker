@@ -1452,7 +1452,7 @@ function App() {
     return (
       <main className="app">
         <div className="app-content">
-          <h1>overthinker</h1>
+          <h1>ovɘrthinkɘr</h1>
           <p>Loading your journal...</p>
         </div>
       </main>
