@@ -3,11 +3,16 @@ import SplashScreen from "./components/SplashScreen";
 
 
 import { useEffect, useRef, useState } from "react";
+
+import { App as CapacitorApp } from "@capacitor/app";
+
+
 import type {
   JournalEntry,
   TextBlock,
   AudioBlock,
   MediaBlock,
+  FileBlock,
 } from "./types/journal";
 import { getEntries, saveEntry, deleteEntry } from "./storage/db";
 import MediaBlockView from "./components/MediaBlockView";
@@ -18,6 +23,7 @@ function App() {
   const recordingSectionRef = useRef<HTMLDivElement | null>(null);
   const pendingAudioSectionRef = useRef<HTMLDivElement | null>(null);
   const pendingMediaSectionRef = useRef<HTMLDivElement | null>(null);
+  const pendingFileSectionRef = useRef<HTMLElement | null>(null);
   // For the entry page issue when adding media or recording, the display is on them
 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -26,6 +32,80 @@ function App() {
 
 
   const [showSplash, setShowSplash] = useState(true);
+
+
+  /// more file formats : attach file
+  const [pendingFile, setPendingFile] = useState<{
+    blob: Blob;
+    fileName: string;
+    mimeType: string;
+    fileExtension: string;
+  } | null>(null);
+
+  const [fileName, setFileName] = useState("Untitled file");
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  //////   select to bulk delete
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([]);
+
+
+  const toggleSelectMode = () => {
+    setSelectMode((current) => !current);
+    setSelectedEntryIds([]);
+  };
+
+  const toggleEntrySelection = (entryId: string) => {
+    setSelectedEntryIds((current) =>
+      current.includes(entryId)
+        ? current.filter((id) => id !== entryId)
+        : [...current, entryId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedEntryIds.length === entries.length) {
+      setSelectedEntryIds([]);
+    } else {
+      setSelectedEntryIds(entries.map((entry) => entry.id));
+    }
+  };
+
+  const deleteSelectedEntries = async () => {
+    if (selectedEntryIds.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `delete ${selectedEntryIds.length} ${
+        selectedEntryIds.length === 1 ? "entry" : "entries"
+      }?\n\nthis will permanently delete the selected entries & all of their writing, recordings, images, GIFs, & videos from this device`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedEntryIds.map((entryId) => deleteEntry(entryId))
+      );
+
+      setEntries((current) =>
+        current.filter((entry) => !selectedEntryIds.includes(entry.id))
+      );
+
+      setSelectedEntryIds([]);
+      setSelectMode(false);
+    } catch (error) {
+      console.error("could not delete selected entries:", error);
+      alert("could not delete the selected entries.");
+    }
+  };
+  /////////////////////
+
+
 
   // -------------------------
   // LONG PRESS MENU
@@ -91,6 +171,75 @@ function App() {
   const entryTitleMenuRef = useRef<HTMLDivElement | null>(null);
 
 
+
+
+
+  // so eyeplus button wont always add new entry unless saved
+  const [draftEntry, setDraftEntry] = useState<JournalEntry | null>(null);
+  const [showBlankEntryPrompt, setShowBlankEntryPrompt] = useState(false);
+
+  const selectedEntryIdRef = useRef<string | null>(null);
+  const draftEntryRef = useRef<JournalEntry | null>(null);
+
+  useEffect(() => {
+    selectedEntryIdRef.current = selectedEntryId;
+  }, [selectedEntryId]);
+
+  useEffect(() => {
+    draftEntryRef.current = draftEntry;
+  }, [draftEntry]);
+
+
+  const findEntryById = (entryId: string): JournalEntry | undefined => {
+    if (draftEntry && draftEntry.id === entryId) {
+      return draftEntry;
+    }
+    return entries.find((entry) => entry.id === entryId);
+  };
+
+  const getCurrentEntryForEdit = (): JournalEntry | undefined => {
+    if (!selectedEntryId) {
+      return undefined;
+    }
+    return findEntryById(selectedEntryId);
+  };
+
+  const persistEntryUpdate = async (updatedEntry: JournalEntry) => {
+    await saveEntry(updatedEntry);
+
+    const wasDraft = draftEntry?.id === updatedEntry.id;
+
+    setEntries((current) =>
+      wasDraft
+        ? [updatedEntry, ...current]
+        : current.map((entry) =>
+            entry.id === updatedEntry.id ? updatedEntry : entry
+          )
+    );
+
+    if (wasDraft) {
+      setDraftEntry(null);
+    }
+  };
+
+  const createEntry = () => {
+    const now = new Date().toISOString();
+
+    const newEntry: JournalEntry = {
+      id: crypto.randomUUID(),
+      title: "untitled entry",
+      createdAt: now,
+      updatedAt: now,
+      blocks: [],
+    };
+
+    setDraftEntry(newEntry);
+    openEntry(newEntry.id);
+  };
+  /////
+
+
+
   // -------------------------
   // SCROLL TO ACTIVE COMPOSER SECTION
   // -------------------------
@@ -130,6 +279,15 @@ function App() {
       });
     }
   }, [pendingMedia, mediaPreviewUrl]);
+
+  useEffect(() => {
+    if (pendingFile) {
+      pendingFileSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [pendingFile]);
 
 
   // -------------------------
@@ -173,6 +331,36 @@ function App() {
       document.removeEventListener("pointerdown", handleOutsideClick);
     };
   }, []);
+
+
+  useEffect(() => {
+    if (!sessionStartedAt || isRecording) {
+      return;
+    }
+
+    const handleOutsideClick = (event: PointerEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        writingSectionRef.current &&
+        writingSectionRef.current.contains(target)
+      ) {
+        return;
+      }
+
+      if (target.closest('[aria-label="Continue writing"]')) {
+        return;
+      }
+
+      cancelWriting();
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, [sessionStartedAt, isRecording]);
 
   // -------------------------
 // PHONE / BROWSER BACK BUTTON
@@ -226,6 +414,47 @@ function App() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
+
+  // useEffect(() => {
+  //   const listener = CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+  //     if (canGoBack) {
+  //       window.history.back();
+  //     } else {
+  //       CapacitorApp.exitApp();
+  //     }
+  //   });
+
+  //   return () => {
+  //     listener.then((handle) => handle.remove());
+  //   };
+  // }, []);
+  useEffect(() => {
+    const listenerPromise = CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+      if (selectedEntryIdRef.current) {
+        const draft = draftEntryRef.current;
+        const isBlankDraft =
+          !!draft &&
+          draft.id === selectedEntryIdRef.current &&
+          draft.blocks.length === 0;
+
+        if (isBlankDraft) {
+          setShowBlankEntryPrompt(true);
+        } else {
+          closeEntry();
+        }
+      } else if (canGoBack) {
+        window.history.back();
+      } else {
+        CapacitorApp.exitApp();
+      }
+    });
+
+    return () => {
+      listenerPromise.then((handle) => handle.remove());
+    };
+  }, []);
+
+
   // -------------------------
   // LOAD DATABASE
   // -------------------------
@@ -288,27 +517,27 @@ function App() {
   // ENTRY FUNCTIONS
   // -------------------------
 
-  const createEntry = async () => {
-    const now = new Date().toISOString();
+  // const createEntry = async () => {
+  //   const now = new Date().toISOString();
 
-    const newEntry: JournalEntry = {
-      id: crypto.randomUUID(),
-      title: "untitled entry",
-      createdAt: now,
-      updatedAt: now,
-      blocks: [],
-    };
+  //   const newEntry: JournalEntry = {
+  //     id: crypto.randomUUID(),
+  //     title: "untitled entry",
+  //     createdAt: now,
+  //     updatedAt: now,
+  //     blocks: [],
+  //   };
 
-    try {
-      await saveEntry(newEntry);
+  //   try {
+  //     await saveEntry(newEntry);
 
-      setEntries((current) => [newEntry, ...current]);
-      setSelectedEntryId(newEntry.id);
-    } catch (error) {
-      console.error("could not create entry:", error);
-      alert("could not save the new entry.");
-    }
-  };
+  //     setEntries((current) => [newEntry, ...current]);
+  //     setSelectedEntryId(newEntry.id);
+  //   } catch (error) {
+  //     console.error("could not create entry:", error);
+  //     alert("could not save the new entry.");
+  //   }
+  // };
 
   // const openEntry = (entryId: string) => {
   //   setSelectedEntryId(entryId);
@@ -324,13 +553,22 @@ function App() {
   //   setEntryTitleMenuOpen(false);
   // };
 
+  // const openEntry = (entryId: string) => {
+  //   window.history.pushState({ entryId }, "");
+  //   setSelectedEntryId(entryId);
+  // };
+
   const openEntry = (entryId: string) => {
-    window.history.pushState({ entryId }, "");
+    window.history.pushState(
+      { view: "entry", entryId },
+      ""
+    );
+
     setSelectedEntryId(entryId);
   };
 
   const closeEntry = () => {
-    if (window.history.state?.entryId) {
+    if (window.history.state?.view === "entry") {
       window.history.back();
     }
 
@@ -341,8 +579,44 @@ function App() {
     setEntryName("");
     setContextEntryId(null);
     setEntryTitleMenuOpen(false);
+    setDraftEntry(null);
   };
 
+  const attemptCloseEntry = () => {
+    const isBlankDraft =
+      !!draftEntry &&
+      draftEntry.id === selectedEntryId &&
+      draftEntry.blocks.length === 0;
+
+    if (isBlankDraft) {
+      setShowBlankEntryPrompt(true);
+      return;
+    }
+
+    closeEntry();
+  };
+
+  const saveBlankEntryAndClose = async () => {
+    if (draftEntry) {
+      try {
+        await persistEntryUpdate(draftEntry);
+      } catch (error) {
+        console.error("could not save entry:", error);
+        alert("could not save the entry.");
+        return;
+      }
+    }
+    setDraftEntry(null);
+    setShowBlankEntryPrompt(false);
+    closeEntry();
+  };
+
+  const discardBlankEntryAndClose = () => {
+    setDraftEntry(null);
+    setShowBlankEntryPrompt(false);
+    closeEntry();
+  };
+    
   // -------------------------
   // LONG PRESS / CONTEXT MENU
   // -------------------------
@@ -372,10 +646,22 @@ function App() {
   // RENAME FROM MENU
   // -------------------------
 
+  // const renameEntryFromMenu = (entryId: string) => {
+  //   const entry = entries.find(
+  //     (currentEntry) => currentEntry.id === entryId
+  //   );
+
+  //   if (!entry) {
+  //     return;
+  //   }
+
+  //   setSelectedEntryId(entryId);
+  //   setEntryName(entry.title);
+  //   setIsRenamingEntry(true);
+  //   setContextEntryId(null);
+  // };
   const renameEntryFromMenu = (entryId: string) => {
-    const entry = entries.find(
-      (currentEntry) => currentEntry.id === entryId
-    );
+    const entry = findEntryById(entryId);
 
     if (!entry) {
       return;
@@ -392,6 +678,42 @@ function App() {
     setEntryName("");
   };
 
+  // const saveEntryName = async () => {
+  //   if (!selectedEntry) {
+  //     return;
+  //   }
+
+  //   const newName = entryName.trim();
+
+  //   if (!newName) {
+  //     alert("Please enter a name for the entry.");
+  //     return;
+  //   }
+
+  //   const updatedAt = new Date().toISOString();
+
+  //   const updatedEntry: JournalEntry = {
+  //     ...selectedEntry,
+  //     title: newName,
+  //     updatedAt,
+  //   };
+
+  //   try {
+  //     await saveEntry(updatedEntry);
+
+  //     setEntries((current) =>
+  //       current.map((entry) =>
+  //         entry.id === selectedEntry.id ? updatedEntry : entry
+  //       )
+  //     );
+
+  //     setIsRenamingEntry(false);
+  //     setEntryName("");
+  //   } catch (error) {
+  //     console.error("could not rename entry:", error);
+  //     alert("could not rename the entry.");
+  //   }
+  // };
   const saveEntryName = async () => {
     if (!selectedEntry) {
       return;
@@ -411,6 +733,13 @@ function App() {
       title: newName,
       updatedAt,
     };
+
+    if (draftEntry?.id === selectedEntry.id) {
+      setDraftEntry(updatedEntry);
+      setIsRenamingEntry(false);
+      setEntryName("");
+      return;
+    }
 
     try {
       await saveEntry(updatedEntry);
@@ -433,12 +762,55 @@ function App() {
   // DELETE FROM MENU
   // -------------------------
 
+  // const deleteEntryFromMenu = async (entryId: string) => {
+  //   const entry = entries.find(
+  //     (currentEntry) => currentEntry.id === entryId
+  //   );
+
+  //   if (!entry) {
+  //     return;
+  //   }
+
+  //   const confirmed = window.confirm(
+  //     `dɘlɘtɘ"${entry.title}"?\n\nthis will permanently delete the entry & all of its writing, recordings, images, GIFs, & videos from this device`
+  //   );
+
+  //   if (!confirmed) {
+  //     return;
+  //   }
+
+  //   try {
+  //     await deleteEntry(entryId);
+
+  //     setEntries((current) =>
+  //       current.filter((currentEntry) => currentEntry.id !== entryId)
+  //     );
+
+  //     setContextEntryId(null);
+
+  //     if (selectedEntryId === entryId) {
+  //       setSelectedEntryId(null);
+  //     }
+  //   } catch (error) {
+  //     console.error("could not delete entry:", error);
+  //     alert("could not delete the entry.");
+  //   }
+  // };
+
   const deleteEntryFromMenu = async (entryId: string) => {
-    const entry = entries.find(
-      (currentEntry) => currentEntry.id === entryId
-    );
+    const entry = findEntryById(entryId);
 
     if (!entry) {
+      return;
+    }
+
+    if (draftEntry && draftEntry.id === entryId) {
+      setDraftEntry(null);
+      setContextEntryId(null);
+
+      if (selectedEntryId === entryId) {
+        closeEntry();
+      }
       return;
     }
 
@@ -477,8 +849,69 @@ function App() {
     setSessionStartedAt(new Date().toISOString());
   };
 
+  const cancelWriting = () => {
+    setWriting("");
+    setSessionStartedAt(null);
+  };
+
+  // const finishWriting = async () => {
+  //   if (!selectedEntryId || !sessionStartedAt) {
+  //     return;
+  //   }
+
+  //   if (!writing.trim()) {
+  //     cancelWriting();
+  //     return;
+  //   }
+
+  //   const endedAt = new Date().toISOString();
+
+  //   const newBlock: TextBlock = {
+  //     id: crypto.randomUUID(),
+  //     type: "text",
+  //     content: writing.trim(),
+  //     startedAt: sessionStartedAt,
+  //     endedAt,
+  //   };
+
+  //   const currentEntry = entries.find(
+  //     (entry) => entry.id === selectedEntryId
+  //   );
+
+  //   if (!currentEntry) {
+  //     return;
+  //   }
+
+  //   const updatedEntry: JournalEntry = {
+  //     ...currentEntry,
+  //     updatedAt: endedAt,
+  //     blocks: [...currentEntry.blocks, newBlock],
+  //   };
+
+  //   try {
+  //     await saveEntry(updatedEntry);
+
+  //     setEntries((current) =>
+  //       current.map((entry) =>
+  //         entry.id === selectedEntryId ? updatedEntry : entry
+  //       )
+  //     );
+
+  //     setWriting("");
+  //     setSessionStartedAt(null);
+  //   } catch (error) {
+  //     console.error("could not save writing:", error);
+  //     alert("could not save your writing.");
+  //   }
+  // };
+
   const finishWriting = async () => {
-    if (!selectedEntryId || !sessionStartedAt || !writing.trim()) {
+    if (!selectedEntryId || !sessionStartedAt) {
+      return;
+    }
+
+    if (!writing.trim()) {
+      cancelWriting();
       return;
     }
 
@@ -492,9 +925,7 @@ function App() {
       endedAt,
     };
 
-    const currentEntry = entries.find(
-      (entry) => entry.id === selectedEntryId
-    );
+    const currentEntry = getCurrentEntryForEdit();
 
     if (!currentEntry) {
       return;
@@ -507,19 +938,13 @@ function App() {
     };
 
     try {
-      await saveEntry(updatedEntry);
-
-      setEntries((current) =>
-        current.map((entry) =>
-          entry.id === selectedEntryId ? updatedEntry : entry
-        )
-      );
+      await persistEntryUpdate(updatedEntry);
 
       setWriting("");
       setSessionStartedAt(null);
     } catch (error) {
-      console.error("Could not save writing:", error);
-      alert("Could not save your writing.");
+      console.error("could not save writing:", error);
+      alert("could not save your writing.");
     }
   };
 
@@ -580,7 +1005,7 @@ function App() {
           duration: recordingDuration,
         });
 
-        setAudioName("untitled recording");
+        setAudioName("no titlɘ ¿");
 
         stream.getTracks().forEach((track) => track.stop());
 
@@ -599,9 +1024,9 @@ function App() {
         setRecordingDuration((current) => current + 1);
       }, 1000);
     } catch (error) {
-      console.error("Could not access microphone:", error);
+      console.error("could not access microphone:", error);
 
-      alert("Microphone access is required to record audio.");
+      alert("microphone access is required to record audio.");
     }
   };
 
@@ -631,9 +1056,9 @@ function App() {
       duration: pendingAudio.duration,
     };
 
-    const currentEntry = entries.find(
-      (entry) => entry.id === selectedEntryId
-    );
+    const currentEntry =
+      entries.find((entry) => entry.id === selectedEntryId) ??
+      (draftEntry?.id === selectedEntryId ? draftEntry : null);
 
     if (!currentEntry) {
       return;
@@ -648,17 +1073,27 @@ function App() {
     try {
       await saveEntry(updatedEntry);
 
-      setEntries((current) =>
-        current.map((entry) =>
-          entry.id === selectedEntryId ? updatedEntry : entry
-        )
-      );
+      setEntries((current) => {
+        const exists = current.some(
+          (entry) => entry.id === updatedEntry.id
+        );
+
+        if (exists) {
+          return current.map((entry) =>
+            entry.id === updatedEntry.id ? updatedEntry : entry
+          );
+        }
+
+        return [updatedEntry, ...current];
+      });
+
+      setDraftEntry(null);
 
       setPendingAudio(null);
-      setAudioName("Untitled recording");
+      setAudioName("untitled recording");
     } catch (error) {
-      console.error("Could not save recording:", error);
-      alert("Could not save the recording.");
+      console.error("could not save recording:", error);
+      alert("could not save the recording.");
     }
   };
 
@@ -674,6 +1109,37 @@ function App() {
   const openMediaPicker = () => {
     mediaInputRef.current?.click();
   };
+
+  const openFilePicker = () => {
+      fileInputRef.current?.click();
+    };
+
+    const handleFileSelected = (
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const file = event.target.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      const fileExtension = file.name.includes(".")
+        ? file.name.substring(file.name.lastIndexOf(".")).toLowerCase()
+        : "";
+
+      setPendingFile({
+        blob: file,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        fileExtension,
+      });
+
+      setFileName(
+        file.name.replace(/\.[^/.]+$/, "") || "Untitled file"
+      );
+
+      event.target.value = "";
+    };
 
   const handleMediaSelected = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -712,11 +1178,92 @@ function App() {
     });
 
     setMediaName(
-      file.name.replace(/\.[^/.]+$/, "") || "Untitled media"
+      file.name.replace(/\.[^/.]+$/, "") || "no titlɘ ¿"
     );
 
     event.target.value = "";
   };
+
+
+
+  const savePendingFile = async () => {
+    console.log("SAVE FILE");
+    console.log("selectedEntryId:", selectedEntryId);
+    console.log("draftEntry:", draftEntry);
+    console.log("pendingFile:", pendingFile);
+    if (!selectedEntryId || !pendingFile) {
+      return;
+    }
+
+    const addedAt = new Date().toISOString();
+
+    const newBlock: FileBlock = {
+      id: crypto.randomUUID(),
+      type: "file",
+      name: fileName.trim() || "Untitled file",
+      fileBlob: pendingFile.blob,
+      mimeType: pendingFile.mimeType,
+      fileExtension: pendingFile.fileExtension,
+      startedAt: addedAt,
+      endedAt: addedAt,
+    };
+
+    const currentEntry =
+      entries.find((entry) => entry.id === selectedEntryId) ??
+      (draftEntry?.id === selectedEntryId ? draftEntry : null);
+    /////
+    console.log("currentEntry:", currentEntry);
+    //////
+
+    if (!currentEntry) {
+      console.error(
+        "Could not save file: no current entry found for",
+        selectedEntryId
+      );
+      return;
+    }
+
+    const updatedEntry: JournalEntry = {
+      ...currentEntry,
+      updatedAt: addedAt,
+      blocks: [...currentEntry.blocks, newBlock],
+    };
+
+    /////
+    console.log("updatedEntry:", updatedEntry);
+    console.log("newBlock:", newBlock);
+    //////////
+
+
+    try {
+      await saveEntry(updatedEntry);
+
+      setEntries((current) => {
+        const exists = current.some(
+          (entry) => entry.id === updatedEntry.id
+        );
+
+        if (exists) {
+          return current.map((entry) =>
+            entry.id === updatedEntry.id
+              ? updatedEntry
+              : entry
+          );
+        }
+
+        return [updatedEntry, ...current];
+      });
+
+      setDraftEntry(updatedEntry);
+      setPendingFile(null);
+      setFileName("no titlɘ ¿");
+
+    } catch (error) {
+      console.error("could not save file:", error);
+      alert("could not save the file.");
+    }
+  };
+
 
   const savePendingMedia = async () => {
     if (!selectedEntryId || !pendingMedia) {
@@ -734,9 +1281,9 @@ function App() {
       endedAt: addedAt,
     };
 
-    const currentEntry = entries.find(
-      (entry) => entry.id === selectedEntryId
-    );
+    const currentEntry =
+      entries.find((entry) => entry.id === selectedEntryId) ??
+      (draftEntry?.id === selectedEntryId ? draftEntry : null);
 
     if (!currentEntry) {
       return;
@@ -751,11 +1298,21 @@ function App() {
     try {
       await saveEntry(updatedEntry);
 
-      setEntries((current) =>
-        current.map((entry) =>
-          entry.id === selectedEntryId ? updatedEntry : entry
-        )
-      );
+      setEntries((current) => {
+        const exists = current.some(
+          (entry) => entry.id === updatedEntry.id
+        );
+
+        if (exists) {
+          return current.map((entry) =>
+            entry.id === updatedEntry.id ? updatedEntry : entry
+          );
+        }
+
+        return [updatedEntry, ...current];
+      });
+
+      setDraftEntry(null);
 
       if (mediaPreviewUrl) {
         URL.revokeObjectURL(mediaPreviewUrl);
@@ -763,10 +1320,10 @@ function App() {
 
       setPendingMedia(null);
       setMediaPreviewUrl(null);
-      setMediaName("Untitled media");
+      setMediaName("untitled media");
     } catch (error) {
-      console.error("Could not save media:", error);
-      alert("Could not save the media.");
+      console.error("could not save media:", error);
+      alert("could not save the media.");
     }
   };
 
@@ -882,9 +1439,10 @@ function App() {
   // SELECTED ENTRY
   // -------------------------
 
-  const selectedEntry = entries.find(
-    (entry) => entry.id === selectedEntryId
-  );
+  // const selectedEntry = entries.find(
+  //   (entry) => entry.id === selectedEntryId
+  // );
+  const selectedEntry = getCurrentEntryForEdit();
 
   // -------------------------
   // LOADING
@@ -914,7 +1472,7 @@ function App() {
 
           {/* BACK */}
 
-          <button className="back-button" onClick={closeEntry} aria-label="Back">
+          <button className="back-button" onClick={attemptCloseEntry} aria-label="Back">
             ˂
           </button>
 
@@ -940,7 +1498,7 @@ function App() {
     </button>
 
     <button onClick={cancelRenamingEntry}>
-      cancel
+      nvm
     </button>
   </div>
 </section>
@@ -948,7 +1506,7 @@ function App() {
       <>
         <div className="entry-title-row">
           <h1>{selectedEntry.title}</h1>
-
+          {!selectMode ? (
           <div
             className="menu-anchor"
             ref={entryTitleMenuRef}
@@ -984,11 +1542,12 @@ function App() {
                 </button>
 
                 <button onClick={() => setEntryTitleMenuOpen(false)}>
-                  cancel
+                  nvm
                 </button>
               </div>
             ) : null}
           </div>
+          ) : null}
         </div>
 
         <p className="entry-created">
@@ -1005,7 +1564,7 @@ function App() {
           aria-label="Continue writing"
           title="Continue writing"
         >
-          🖉
+          <span className="action-icon">writɘ</span>
         </button>
 
         <button
@@ -1013,7 +1572,7 @@ function App() {
           aria-label="Record"
           title="Record"
         >
-          🎙
+          <span className="action-icon">🎙</span>
         </button>
 
         <button
@@ -1021,7 +1580,15 @@ function App() {
           aria-label="Add media"
           title="Add media"
         >
-          📎
+          <span className="action-icon">📎</span>
+        </button>
+
+        <button
+          onClick={openFilePicker}
+          aria-label="Attach file"
+          title="Attach file"
+        >
+          <span className="action-icon">📄</span>
         </button>
 
       </div>
@@ -1063,7 +1630,8 @@ function App() {
                 block.type === "audio" ||
                 block.type === "image" ||
                 block.type === "gif" ||
-                block.type === "video"
+                block.type === "video" ||
+                block.type === "file"
               ) {
                 return (
                   <MediaBlockView
@@ -1084,8 +1652,8 @@ function App() {
           {sessionStartedAt && !isRecording ? (
             <section className="composer-section" ref={writingSectionRef}>
 
-              <p className="session-time">
-                Writing started:{" "}
+              {/* <p className="session-time">
+                started:{" "}
                 {formatDateTime(sessionStartedAt)}
               </p>
 
@@ -1094,14 +1662,41 @@ function App() {
                 onChange={(event) =>
                   setWriting(event.target.value)
                 }
-                placeholder="write whatever's on ur mind..."
+                placeholder="write whtvr"
                 rows={10}
                 autoFocus
               />
 
               <button onClick={finishWriting}>
-                ✓ done
+                done
               </button>
+
+              <button onClick={cancelWriting}>
+                nvm
+              </button> */}
+              <p className="session-time">
+                started:{" "}
+                {formatDateTime(sessionStartedAt)}
+              </p>
+
+              <div className="writing-actions">
+                <button onClick={finishWriting}>
+                  done
+                </button>
+
+                <button onClick={cancelWriting}>
+                  nvm
+                </button>
+              </div>
+
+              <textarea
+                value={writing}
+                onChange={(event) =>
+                  setWriting(event.target.value)
+                }
+                placeholder="write whatever's on ur mind..."
+                autoFocus
+              />
 
             </section>
           ) : null}
@@ -1111,21 +1706,21 @@ function App() {
           {isRecording ? (
             <section className="composer-section" ref={recordingSectionRef}>
 
-              <h2>r e c o r d 🎙 n g</h2>
+              {/* <h2>r e c o r d 🎙 n g</h2> */}
 
               <p className="recording-time">
                 {formatDuration(recordingDuration)}
               </p>
 
               <p>
-                Started:{" "}
+                started:{" "}
                 {recordingStartedAt
                   ? formatDateTime(recordingStartedAt)
                   : ""}
               </p>
 
               <button onClick={stopRecording}>
-                s t ■ p
+                ■
               </button>
 
             </section>
@@ -1183,6 +1778,7 @@ function App() {
 
           {pendingMedia && mediaPreviewUrl ? (
             <section className="composer-section" ref={pendingMediaSectionRef}>
+              <div className="pending-media-layout">
 
               <h2>
                 {pendingMedia.type === "image" && "📷 Image"}
@@ -1224,13 +1820,73 @@ function App() {
                 </button>
 
                 <button onClick={savePendingMedia}>
-                  Save media
+                  save
                 </button>
 
               </div>
+            </div>
 
             </section>
           ) : null}
+
+
+
+        {/* PENDING FILE */}
+
+{pendingFile ? (
+  <section className="composer-section" ref={pendingFileSectionRef}>
+    <div className="pending-file-layout">
+
+      <h2>
+        📄 File
+      </h2>
+
+      <p className="file-preview-name">
+        {pendingFile.fileName}
+      </p>
+
+      <p className="file-preview-type">
+        {pendingFile.fileExtension || "file"}
+        {" · "}
+        {pendingFile.mimeType}
+      </p>
+
+      <label>
+        Name
+
+        <input
+          type="text"
+          value={fileName}
+          onChange={(event) =>
+            setFileName(event.target.value)
+          }
+        />
+      </label>
+
+      <div className="button-row">
+
+        <button
+          onClick={() => {
+            setPendingFile(null);
+            setFileName("Untitled file");
+          }}
+        >
+          dɘlɘtɘ
+        </button>
+
+        <button onClick={savePendingFile}>
+          savɘ
+        </button>
+
+      </div>
+
+    </div>
+  </section>
+) : null}  
+
+
+
+
 
           {/* FILE INPUT */}
 
@@ -1241,44 +1897,72 @@ function App() {
             onChange={handleMediaSelected}
             style={{ display: "none" }}
           />
+          
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.txt,.mp3,.wav,.m4a,.ogg,.aac"
+              onChange={handleFileSelected}
+              style={{ display: "none" }}
+            />
         </div>
+
+
+
+        {showBlankEntryPrompt ? (
+  <div className="blank-entry-overlay">
+    <div className="blank-entry-dialog">
+      <p>save the entry still even tho blank?</p>
+
+      <div className="button-row">
+        <button onClick={discardBlankEntryAndClose}>
+          nevermind
+        </button>
+
+        <button onClick={saveBlankEntryAndClose}>
+          savɘ
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
+
       </main>
     );
   }
 
-  // -------------------------
+    // -------------------------
   // HOME
   // -------------------------
 
   return (
-      <main className="app">
+    <main className="app">
+      <div className="app-content">
 
-        <div className="app-content">
+        {/* HEADER */}
 
-          <div className="home-sticky-header">
+        <header className="home-header">
+          <div className="home-brand">
 
-            {/* HEADER */}
+            <div className="logo-row">
+              <h1 className="logo">
+                ovɘrthinkɘr
+              </h1>
+            </div>
 
-            <header className="home-header">
+            <p className="tagline">
+              a place for everything on ur mind
+            </p>
 
-              <div className="home-brand">
+          </div>
+        </header>
 
-                <div className="logo-row">
-                  <h1 className="logo">
-                    ovɘrthinkɘr
-                  </h1>
-                </div>
+        {/* DASHBOARD ACTIONS */}
 
-                <p className="tagline">
-                  a place for everything on ur mind
-                </p>
+        <section>
 
-              </div>
-
-            </header>
-
-            {/* EYE / NEW ENTRY BUTTON */}
+          <div className="dashboard-actions">
 
             <div className="eye-button-wrapper">
               <span className="eyelashes" aria-hidden="true">
@@ -1299,31 +1983,69 @@ function App() {
               </button>
             </div>
 
-            <hr className="entry-separator" />
+            <button
+              className="select-button"
+              onClick={toggleSelectMode}
+            >
+              {selectMode ? "nvm" : "select"}
+            </button>
 
           </div>
 
+          {/* BULK ACTIONS */}
+
+          {selectMode && entries.length > 0 ? (
+            <div className="bulk-actions">
+
+              <button className="check-button" onClick={toggleSelectAll}>
+                {selectedEntryIds.length === entries.length
+                  ? "uncheck all"
+                  : "check all"}
+              </button>
+
+              <button
+                className="bulk-delete-button"
+                onClick={deleteSelectedEntries}
+                disabled={selectedEntryIds.length === 0}
+              >
+                dɘlɘtɘ
+              </button>
+
+            </div>
+          ) : null}
+
           {/* ENTRIES */}
 
-          <section>
+          {entries.length === 0 ? (
 
-            {entries.length === 0 ? (
+            <div className="empty-state">
+              <p>
+                woa, emptyy y ... anyway, start writing whenever u're ready :)
+              </p>
+            </div>
 
-              <div className="empty-state">
-                <p>woa, emptyy y ...  anyway, start writing whenever u're ready :)</p>
-              </div>
+          ) : (
 
-            ) : (
-
-              <div className="entry-list">
+            <div className="entry-list">
 
               {entries.map((entry, index) => (
 
                 <article
                   key={entry.id}
-                  className="entry-item"
+                  className={`entry-item ${
+                    selectMode &&
+                    selectedEntryIds.includes(entry.id)
+                      ? "entry-selected"
+                      : ""
+                  }`}
 
                   onClick={() => {
+
+                    if (selectMode) {
+                      toggleEntrySelection(entry.id);
+                      return;
+                    }
+
                     if (contextEntryId) {
                       closeEntryMenu();
                       return;
@@ -1332,18 +2054,40 @@ function App() {
                     openEntry(entry.id);
                   }}
 
-                  onPointerDown={() =>
-                    startEntryLongPress(entry.id)
-                  }
+                  onPointerDown={() => {
+                    if (!selectMode) {
+                      startEntryLongPress(entry.id);
+                    }
+                  }}
 
                   onPointerUp={cancelEntryLongPress}
                   onPointerLeave={cancelEntryLongPress}
 
                   onContextMenu={(event) => {
                     event.preventDefault();
-                    openEntryMenu(entry.id);
+
+                    if (!selectMode) {
+                      openEntryMenu(entry.id);
+                    }
                   }}
                 >
+
+                  {/* CHECKBOX */}
+
+                  {selectMode ? (
+                    <input
+                      type="checkbox"
+                      className="entry-checkbox"
+                      checked={selectedEntryIds.includes(entry.id)}
+                      onChange={() =>
+                        toggleEntrySelection(entry.id)
+                      }
+                      onClick={(event) =>
+                        event.stopPropagation()
+                      }
+                      aria-label={`Select ${entry.title}`}
+                    />
+                  ) : null}
 
                   {/* NUMBER */}
 
@@ -1357,42 +2101,89 @@ function App() {
 
                   <div className="entry-info">
 
-                    {/* <h3 className="entry-title">
-                      {entry.title}
-                    </h3> */}
                     <div className="entry-title-row">
+
                       <h3 className="entry-title">
                         {entry.title}
                       </h3>
 
-                      {/* <button
-                        className="dots-button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openEntryMenu(entry.id);
-                        }}
-                        aria-label="Entry options"
-                      >
-                        ⋮
-                      </button> */}
+                      {/* THREE DOTS */}
+
+                      {!selectMode ? (
+                        <div className="menu-anchor dashboard-entry-menu">
+
+                          <button
+                            className="dots-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openEntryMenu(entry.id);
+                            }}
+                            aria-label="Entry options"
+                          >
+                            ⋮
+                          </button>
+
+                          {contextEntryId === entry.id ? (
+                            <div
+                              className="dropdown-menu"
+                              onPointerDown={(event) =>
+                                event.stopPropagation()
+                              }
+                              onClick={(event) =>
+                                event.stopPropagation()
+                              }
+                            >
+
+                              <button
+                                onClick={() =>
+                                  renameEntryFromMenu(entry.id)
+                                }
+                              >
+                                rɘnamɘ
+                              </button>
+
+                              <button
+                                className="delete-option"
+                                onClick={() =>
+                                  deleteEntryFromMenu(entry.id)
+                                }
+                              >
+                                dɘlɘtɘ
+                              </button>
+
+                              <button
+                                onClick={closeEntryMenu}
+                              >
+                                nvm
+                              </button>
+
+                            </div>
+                          ) : null}
+
+                        </div>
+                      ) : null}
+
                     </div>
 
+                    {/* ENTRY META */}
+
                     <div className="entry-meta-row">
+
                       <span className="entry-meta">
                         {formatDateTime(entry.createdAt)}
                       </span>
 
-                      <span className="entry-divider"> ٭ </span>
+                      <span className="entry-divider">
+                        ٭
+                      </span>
 
                       <span className="entry-count">
-          
                         {entry.blocks.length}{" "}
                         {entry.blocks.length === 1
                           ? "addition"
                           : "additions"}
                       </span>
 
-            
                     </div>
 
                   </div>
@@ -1403,14 +2194,13 @@ function App() {
 
             </div>
 
-            )}
+          )}
 
-          </section>
+        </section>
 
-        </div>
-
-      </main>
-    );
+      </div>
+    </main>
+  );
 }
 
 export default App;

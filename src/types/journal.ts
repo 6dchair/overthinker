@@ -25,10 +25,22 @@ export interface MediaBlock {
   endedAt: string;
 }
 
+export interface FileBlock {
+  id: string;
+  type: "file";
+  name: string;
+  fileBlob: Blob;
+  mimeType: string;
+  fileExtension: string;
+  startedAt: string;
+  endedAt: string;
+}
+
 export type JournalBlock =
   | TextBlock
   | AudioBlock
-  | MediaBlock;
+  | MediaBlock
+  | FileBlock;
 
 export interface JournalEntry {
   id: string;

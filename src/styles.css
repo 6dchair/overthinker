@@ -432,7 +432,7 @@ button {
 
   color: #777;
 
-  font-size: 23px;
+  font-size: 20px;
 }
 
 /* =========================================================
@@ -479,6 +479,8 @@ button {
 }
 
 .entry-actions-top button {
+  min-width: 56px;
+  height: 56px;
   padding: 5px 8px;
 
   border: 1px solid #d6d2ca;
@@ -487,10 +489,12 @@ button {
   background: transparent;
 
   color: #333;
-
-  font-size: 23px;
 }
 
+.action-icon {
+  font-size: 32px;
+  line-height: 1;
+}
 .entry-actions-top button:hover {
   background: #ebe8e2;
 }
@@ -536,10 +540,10 @@ button {
 }
 
 /* =========================================================
-   COMPOSER
+   COMPOSER (with box writing area
 ========================================================= */
 
-.composer-section {
+/* .composer-section {
   width: 100%;
   max-width: 850px;
 
@@ -601,12 +605,91 @@ button {
 
 .composer-section button {
   padding: 8px 12px;
+} */
+
+/* =========================================================
+   WRITING COMPOSER - al screen and done & cancel buttons above
+========================================================= */
+
+.composer-section {
+  width: 100%;
+  max-width: 850px;
+  margin-top: 16px;
+  padding: 14px 0;
+  border-top: 1px solid #dedbd5;
+  text-align: left;
+}
+
+/* Writing timestamp */
+
+.session-time {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #77736d;
+}
+
+/* Done / cancel controls */
+
+.writing-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.writing-actions button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: red;
+  font: inherit;
+  cursor: pointer;
+}
+
+.writing-actions button:hover {
+  background: transparent;
+}
+
+.writing-actions button:focus {
+  outline: none;
+}
+
+/* Full writing surface */
+
+.composer-section textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 60vh;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+  outline: none;
+
+  background: transparent;
+
+  resize: none;
+
+  font: inherit;
+  line-height: 1.6;
+  color: inherit;
+
+  box-sizing: border-box;
+}
+
+.composer-section textarea:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .recording-time {
   margin: 8px 0;
 
-  font-size: 30px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -845,6 +928,25 @@ button {
     font-size: 10px;
   }
 
+  .dashboard-entry-menu .dots-button {
+    font-size: 16px;
+  }
+
+  .select-button {
+    font-size: 13px;
+    color: red;
+  }
+
+  .bulk-actions {
+    font-size: 13px;
+  }
+
+  .bulk-actions .bulk-delete-button {
+    color: red;
+  }
+
+  .
+
   /* ENTRY PAGE */
 
   .entry-header h1 {
@@ -961,7 +1063,7 @@ button {
 }
 
 
-.entry-separator {
+/* .entry-separator {
   width: 100%;
   height: 5px;
 
@@ -973,9 +1075,21 @@ button {
   border-bottom: 1px solid rgba(31, 31, 31, 0.35);
 
   background: transparent;
+} */
+
+.entry-separator {
+  border: 0;
+  height: 1px;
+  margin: 1rem 0;
+
+  background: repeating-linear-gradient(
+    to right,
+    #000 0,
+    #000 12px,
+    transparent 10px,
+    transparent 10px
+  );
 }
-
-
 
 /* =========================================================
    ENTRY HEADER LAYOUT
@@ -1172,17 +1286,313 @@ button {
   font-size: 23px;
 }
 
+.pending-media-layout {
+  display: flex;
+  flex-direction: column;
 
+  height: calc(100vh - 160px);
+  max-height: calc(100vh - 160px);
+}
 
-.pending-actions-sticky {
-  position: sticky;
-  bottom: 0;
+.pending-media-layout .media-preview {
+  flex: 1;
+  min-height: 0;
 
-  z-index: 15;
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+
+  object-fit: contain;
+}
+
+.pending-media-layout h2,
+.pending-media-layout label,
+.pending-media-layout .button-row {
+  flex: 0 0 auto;
+}
+
+.blank-entry-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 50;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.blank-entry-dialog {
+  width: min(360px, 100%);
+
+  padding: 18px;
+
+  border: 1px solid #dedbd5;
+  border-radius: 10px;
 
   background: #faf9f6;
 
-  padding: 10px 0;
-
-  border-top: 1px solid #dedbd5;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
 }
+
+.blank-entry-dialog p {
+  margin: 0 0 14px;
+
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.blank-entry-dialog .button-row {
+  justify-content: flex-end;
+}
+
+
+
+
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.select-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 21px;
+  color: red;
+  cursor: pointer;
+}
+
+.bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.75rem 0;
+}
+
+.bulk-actions .bulk-delete-button {
+  color: red;
+}
+
+.bulk-actions button {
+  border: none;
+  background: transparent;
+  font-size: 21px;
+  cursor: pointer;
+}
+
+.bulk-delete-button {
+  color: #000;
+}
+
+.bulk-delete-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.entry-checkbox {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: #000;
+}
+
+/* .entry-selected {
+  optional visual indication 
+} */
+
+/* -------------------------
+   CLICKABLE MEDIA
+------------------------- */
+
+.clickable-media {
+  cursor: zoom-in;
+}
+
+
+/* -------------------------
+   IMAGE VIEWER
+------------------------- */
+
+.image-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.92);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.image-viewer-content {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* .image-viewer-toolbar {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 12px;
+} */
+
+.image-viewer-toolbar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.image-viewer-toolbar button {
+  min-width: 42px;
+  height: 42px;
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+
+  font-size: 20px;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.image-viewer-toolbar button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+/* 
+.image-viewer-stage {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: auto;
+
+  padding: 20px;
+
+  touch-action: pinch-zoom;
+} */
+
+
+
+/* .image-viewer-stage {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: auto;
+  padding: 20px;
+
+  touch-action: none;
+}
+
+.image-viewer-image {
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  transform-origin: center center;
+
+  transition: transform 0.15s ease;
+
+  user-select: none;
+  -webkit-user-drag: none;
+
+  cursor: zoom-out;
+} */
+
+/* .image-viewer-stage {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+} */
+.image-viewer-stage {
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+
+.image-viewer-stage:active {
+  cursor: grabbing;
+}
+
+.image-viewer-image {
+  display: block;
+
+  max-width: 90vw;
+  max-height: 80vh;
+
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+  object-position: center;
+
+  transform-origin: center center;
+
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+
+.file-download-link {
+  display: inline-block;
+
+  margin: 6px 0;
+  padding: 8px 12px;
+
+  border: 1px solid #d6d2ca;
+  border-radius: 7px;
+
+  color: #1f1f1f;
+
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.file-download-link:hover {
+  background: #ebe8e2;
+}
+
+
